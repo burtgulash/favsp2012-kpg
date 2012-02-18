@@ -6,10 +6,13 @@ import java.awt.Color;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
+interface PolarFunction {
+	public double eval(double theta);
+}
 
 class Canvaso extends JPanel {
 	private final int width, height;
-	private final double xlo = 0, xhi = 100, ylo = 0, yhi = 100;
+	private final double xlo = 0, xhi = 100, ylo = 0, yhi = 50;
 
 	Canvaso(int width, int height) {	
 		this.width = width;
@@ -23,41 +26,58 @@ class Canvaso extends JPanel {
 	private int y(double y) {
 		return (int) ((height - 1) - y * (height - 1) / (yhi - ylo));
 	}
+
+
+	private void makeCurve(PolarFunction f, GeneralPath p, double cx, double cy)
+	{
+		double step = 1e-3;
+		double r;
+
+		p.moveTo(x(cx), y(cy));
+		for (double t = 0; t <= 2.0 * Math.PI; t += step) {
+			r = f.eval(t);
+			p.lineTo(x(cx + r * Math.cos(t)), y(cy + r * Math.sin(t)));
+		}
+	}
 	
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
 		Graphics2D gg = (Graphics2D) g;
 		setBackground(Color.WHITE);
 
-		int size = 31;
-		double r = 40.0;
-		double[] xs = new double[size];
-		double[] ys = new double[size];
-		double center_x = 50.0, center_y = 50.0;
-
-		for (int i = 0; i < size; i++) {
-			xs[i] = r * Math.cos(2.0 * Math.PI * (double) i / (double) size);
-			ys[i] = r * Math.sin(2.0 * Math.PI * (double) i / (double) size);
-
-			xs[i] += center_x;
-			ys[i] += center_y;
-		}
-
-		GeneralPath p = new GeneralPath();
-
-		p.moveTo(x(xs[0]), y(ys[0]));
-		for (int i = 0; i < size / 2; i++)
-			for (int j = 0; j < size; j++) {
-				int point = ((i + 1) * (j + 1)) % size;
-				p.lineTo(x(xs[point]), y(ys[point]));
+		PolarFunction[] fs = new PolarFunction[] {
+			new PolarFunction() {
+				public double eval(double t) { 
+					return 2 * t; 
+				}
+			},
+			new PolarFunction() {
+				public double eval(double t) { 
+					return 6 * Math.sin(4 * t); 
+				}
+			},
+			new PolarFunction() {
+				public double eval(double t) { 
+					return 6 * (3 * Math.cos(t) - Math.cos(3 * t));
+				}
+			},
+			new PolarFunction() {
+				public double eval(double t) { 
+					return 6 * (1 - Math.cos(t));
+				}
 			}
+		};
 
-		gg.draw(p);
+		for (int i = 0; i < fs.length; i++) {
+			GeneralPath p = new GeneralPath();
+			makeCurve(fs[i], p, (i + 1) * xhi / 5, 25);
+			gg.draw(p);
+		}
 	}
 }
 
 public class Test {
-	private static int width = 800, height = 800;
+	private static int width = 1000, height = 500;
 
 	public static void main (String... args) {
 		JFrame frame = new JFrame("Pokus");
