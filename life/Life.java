@@ -25,9 +25,6 @@ class Canvaso extends JPanel {
 
 		age = new int[2][cells + 2][cells + 2];
 		lives = new byte[2][cells + 2][cells + 2];
-		lives[0][50][50] = 1;
-		lives[0][51][51] = 1;
-		lives[0][52][52] = 1;
 
 		this.cellSize = cellSize;
 	}
@@ -35,7 +32,7 @@ class Canvaso extends JPanel {
 	Canvaso(int size, int cellSize, byte[][] board) {
 		this(size, cellSize);
 		for (int i = 1; i < Math.min(cells, board.length); i++) {
-			for (int j = 1; j < Math.min(cells, board[j].length); j++) {
+			for (int j = 1; j < Math.min(cells, board[0].length); j++) {
 				age[0][i][j] = (int) board[i][j];
 				lives[0][i][j] = board[i][j];
 			}
@@ -47,7 +44,7 @@ class Canvaso extends JPanel {
 			for (;;) {
 				repaint();
 				nextIteration();
-				Thread.sleep(100);
+				Thread.sleep(1);
 			}
 		} catch (InterruptedException ex) {}
 	}
@@ -120,7 +117,7 @@ class Canvaso extends JPanel {
 public class Life {
 	public static void main (String[] argv) {
 		int size = 800;
-		int cellSize = 10;
+		int cellSize = 8;
 		byte[][] board = new byte[size / cellSize][size / cellSize];
 
 		Canvaso ccc = null;
@@ -128,7 +125,7 @@ public class Life {
 		if (argv.length == 1) {
 			BufferedReader br = null;
 			try {
-				br = new BufferedReader(new FileReader(argv[1]));
+				br = new BufferedReader(new FileReader(argv[0]));
 
 				String s;
 				for (int r = 1; (s = br.readLine()) != null; r++)
