@@ -69,12 +69,25 @@ public class Maze {
 
 	}
 
+	static final String usage = "Usage: maze FILE.png ROWS COLUMNS";
 
-	public static void main (String[] args) {
-		int rows = 400;
-		int cols = 400;
+	public static void main (String[] argv) {
+		
+		if (argv.length != 3) {
+			System.out.println(usage);
+			System.exit(1);
+		}
 
-		int width = 800;
+		int rows = 0, cols = 0;
+		try {
+			rows = Integer.parseInt(argv[1]);
+			cols = Integer.parseInt(argv[2]);
+		} catch (NumberFormatException nfe) {
+			System.out.println(usage);
+			System.exit(1);
+		}
+
+		int width = rows * 2;
 		int height = width * rows / cols;
 
 		int boxSize = width / rows;
@@ -84,7 +97,7 @@ public class Maze {
 
 		BufferedImage img = new BufferedImage(width + wallThick, 
                                               height + wallThick, 
-                                              BufferedImage.TYPE_INT_RGB);
+                                              BufferedImage.TYPE_BYTE_GRAY);
 		Graphics2D gg = img.createGraphics();
 		
 		generate(0, rows, cols);
@@ -111,8 +124,10 @@ public class Maze {
 
 		
 		try {
-			ImageIO.write(img, "png", new File("maze.png"));
+			ImageIO.write(img, "png", new File(argv[0]));
 		} catch (IOException ioe) {
+			System.out.println(usage);
+			System.exit(1);
 		}
 	}
 }
