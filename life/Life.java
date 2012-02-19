@@ -8,8 +8,6 @@ import javax.swing.JPanel;
 import javax.swing.JFrame;
 import javax.imageio.ImageIO;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.File;
 import java.io.IOException;
 
