@@ -13,8 +13,8 @@ public class Fractal {
     static int iterations = 300;
 
     final static int[][] CMAP = new int[][] 
-         {{0, 15, 30, 60, 120, 255},
-           {0, 0xFFFFFF, 0xb1e70c, 0x26e70c, 0x0db8c3, 0}};
+         {{0, 50, 100, 150, 200, 255},
+          {0xFFFFFF, 0xffca22, 0xaa1188, 0xe3b6ff, 0xFFFFFF, 0}};
 
     private static Color blendColor(int[][] colorMap, int iters) {
         int i = 0;
@@ -51,8 +51,8 @@ public class Fractal {
 
 
     private static void mandelbrot(double[][] buf) {
-		final double ESCAPE = 16.0;
-        final double LOG_ESCAPE = Math.log(ESCAPE);
+        final double ESCAPE = 16.0;
+        final double LOG_ESCAPE = Math.log(2.0);
 
         double a, b, re, im, tmp, abs;
         int i;
@@ -105,7 +105,7 @@ public class Fractal {
         ylo = -0.9;
         yhi = 0.9;
 
-        int width = 1920;
+        int width = 2 * 1920;
         int height = (int) ((double) width * (yhi - ylo) / (xhi - xlo));
 
         double[][] buf = new double[height][width];
