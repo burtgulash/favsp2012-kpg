@@ -2,6 +2,7 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.awt.Dimension;
 
 import javax.swing.JPanel;
 import javax.swing.JFrame;
@@ -175,16 +176,16 @@ public class Life {
         img.getRGB(0, 0, w, h, rgbs, 0, w);
         byte[][] board = convertToBytes(rgbs, w, h);
         Board bb = new Board(board, cellSize);
+        bb.setPreferredSize(new Dimension(cellSize * w, cellSize * h));
 
         JFrame frame = new JFrame("Conway's game of life ("+w+" x "+h+")");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(cellSize * w, cellSize * h);
 
         frame.add(bb);
         frame.setVisible(true);
+        frame.setResizable(false);
+        frame.pack();
 
         bb.run();
-
-        frame.repaint();
     }
 }
