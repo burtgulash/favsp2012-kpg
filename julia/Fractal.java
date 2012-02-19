@@ -51,7 +51,9 @@ public class Fractal {
 
 
     private static void mandelbrot(double[][] buf) {
-        final double LOG_2 = Math.log(2);
+		final double ESCAPE = 16.0;
+        final double LOG_ESCAPE = Math.log(ESCAPE);
+
         double a, b, re, im, tmp, abs;
         int i;
 
@@ -68,14 +70,14 @@ public class Fractal {
 
                 for (i = 0; i < iterations - 1; i++) {
                     abs = re * re + im * im;
-                    if (abs >= 16.0)
+                    if (abs >= ESCAPE)
                         break;
                     tmp = re * re - im * im + a;
                     im = 2 * re * im + b;
                     re = tmp;
                 }
 
-                buf[y][x] = i + 1 - Math.log(Math.log(abs + 1.0)) / LOG_2;
+                buf[y][x] = i + 1 - Math.log(Math.log(abs + 1.0)) / LOG_ESCAPE;
             }
         }
     }
