@@ -17,7 +17,7 @@ class Board extends JPanel {
 
     final int maxAge = 300;
     final int[][] BLACK_WHITE = new int[][] {{0, maxAge}, {0xFFFFFF, 0xFF0000}};
-    final int[][] CMAP = new int[][] 
+    final int[][] PALETTE = new int[][] 
          {{0, 15, 30, 60, 120, maxAge},
            {0xFFFFFF, 0xb1e70c, 0x26e70c, 0x0db8c3, 0x40268a, 0x453f55}};
 
@@ -88,7 +88,7 @@ class Board extends JPanel {
         for (int r = 1; r <= cellsY; r++) {
             for (int c = 1; c <= cellsX; c++) {
                 if (lives[iteration][r][c] == 1)
-                    g.setPaint(blendColor(CMAP, age[iteration][r][c]));
+                    g.setPaint(blendColor(PALETTE, age[iteration][r][c]));
                 else 
                     g.setPaint(Color.BLACK);
 
@@ -96,8 +96,6 @@ class Board extends JPanel {
                            (r - 1) * cellSize, cellSize, cellSize);
             }
         }
-
-        repaint();
     }
 
 
@@ -141,10 +139,9 @@ class Board extends JPanel {
     }
 
 
-    public void paintComponent(Graphics gg) {
-        super.paintComponent(gg);
-        Graphics2D g = (Graphics2D) gg;
-        plotAges(g);
+    public void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        plotAges((Graphics2D) g);
     }
 }
 
@@ -173,6 +170,7 @@ public class Life {
         int [] rgbs = new int[w * h];
         img.getRGB(0, 0, w, h, rgbs, 0, w);
         byte[][] board = convertToBytes(rgbs, w, h);
+
         Board bb = new Board(board, cellSize);
         bb.setPreferredSize(new Dimension(cellSize * w, cellSize * h));
 
