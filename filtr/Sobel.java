@@ -23,7 +23,7 @@ public class Sobel {
     }
 
     static int intensityToGrayScale(int i) {
-        i &= 0xFF;
+        i = Math.min(0xFF, Math.max(0, i));
         return 0xFF000000 | (i << 16) | (i << 8) | i;
     }
 
@@ -31,6 +31,8 @@ public class Sobel {
         int rw, gx, gy, g[];
 
         g = new int[rgbs.length];
+        for (int i = 0; i < w; i++)
+            g[i] = g[i * w] = g[i * w + w - 1] = g[w * h - w + i] = 0xFF000000;
 
         for (int r = 1; r < h - 1; r ++) {
             rw = r * w;
