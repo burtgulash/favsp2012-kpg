@@ -3,7 +3,7 @@ CCFLAGS = -ansi -pedantic -Wall -rdynamic
 
 LIB  = $$(pkg-config --libs --cflags gtk+-3.0)
 EXEC = upratovac
-SRC  = main.c  callback.c
+SRC  = main.c callback.c filters.c
 
 
 $(EXEC) : $(SRC)
