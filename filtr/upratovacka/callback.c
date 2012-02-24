@@ -1,14 +1,77 @@
 #include <gtk/gtk.h>
 
+#include <stdlib.h>
+
 #include "callback.h"
+#include "filters.h"
 #include "glob.h"
 
+
+#define UPDATE_IMAGE(buf) {                                                  \
+    PUSH(undo_stack, up, buf);                                               \
+    gtk_image_set_from_pixbuf(GTK_IMAGE(img), buf);                          \
+}                                                                            \
 
 extern GtkWidget *window, *img;
 
 extern char *filename, *image_format;
 extern int up, rp;
 extern GdkPixbuf *undo_stack[];
+extern pixbuf_data p_data;
+
+
+G_MODULE_EXPORT void
+on_filter_edge_detect_activate(GtkWidget *widget, gpointer data)
+{
+    int h, s, n_chans;
+    int min, max;
+    int channel, x, y;
+    int *filtered;
+    int offset, value;
+    GdkPixbuf *buf, *new;
+    guchar /* *ps ,*/ *news;
+
+    buf = PEEK(undo_stack, up);
+    new = gdk_pixbuf_new(p_data.colorspace, 
+                         p_data.has_alpha,
+                         p_data.bits_per_sample,
+                         p_data.width,
+                         p_data.height);
+
+    /* ps = gdk_pixbuf_get_pixels(buf); */
+    news = gdk_pixbuf_get_pixels(new);
+    h = gdk_pixbuf_get_height(buf);
+    s = gdk_pixbuf_get_rowstride(buf);
+    n_chans = gdk_pixbuf_get_n_channels(buf);
+
+    filtered = roberts_cross(buf);
+    
+    for (channel = 0; channel < 3; channel++) {
+        min = 0x0;
+        max = 0xFF;
+
+        for (y = 0; y < h; y++) {
+            for (x = 0; x < s; x += n_chans) {
+                value = filtered[y * s + x + channel];
+                if (value > max)
+                    max = value;
+                if (value < min)
+                    min = value;
+            }
+        }
+
+        for (y = 0; y < h; y++) {
+            for (x = 0; x < s; x += n_chans) {
+                offset = y * s + x + channel;
+                news[offset] = (filtered[offset] - min) * 0xFF / (max - min);
+            }
+        }
+    }
+    
+    UPDATE_IMAGE(new);
+
+    free(filtered);
+}
 
 
 G_MODULE_EXPORT void
@@ -47,7 +110,11 @@ on_menu_open_activate(GtkWidget *widget, gpointer data)
             PUSH(undo_stack, up, buf);
             gtk_image_set_from_pixbuf(GTK_IMAGE(img), buf);
 
-            /* TODO width, height get here */
+            p_data.colorspace = gdk_pixbuf_get_colorspace(buf);
+            p_data.has_alpha = gdk_pixbuf_get_has_alpha(buf);
+            p_data.bits_per_sample = gdk_pixbuf_get_bits_per_sample(buf);
+            p_data.width = gdk_pixbuf_get_width(buf);
+            p_data.height = gdk_pixbuf_get_height(buf);
         } else {
             fprintf(stderr, "%s is not an image.\n", filename);
         }

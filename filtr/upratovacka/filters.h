@@ -5,6 +5,8 @@
 
 
 int* sobel(GdkPixbuf *buf);
+int* prewitt(GdkPixbuf *buf);
+int* roberts_cross(GdkPixbuf *buf);
 int* edge_detect(int c_size, int cx[], int cy[], GdkPixbuf *buf);
 
 #endif /* !FILTERS_H */

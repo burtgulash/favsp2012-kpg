@@ -4,6 +4,9 @@
 #include <gtk/gtk.h>
 
 G_MODULE_EXPORT void
+on_filter_edge_detect_activate(GtkWidget *widget, gpointer data);
+
+G_MODULE_EXPORT void
 on_about_activate(GtkWidget *widget, gpointer data);
 
 G_MODULE_EXPORT void

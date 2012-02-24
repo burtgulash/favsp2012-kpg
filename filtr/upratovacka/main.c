@@ -16,6 +16,8 @@ int up = 0,
 GdkPixbuf *undo_stack[STACK_SIZE];
 GdkPixbuf *redo_stack[STACK_SIZE];
 
+pixbuf_data p_data;
+
 
 
 int main(int argc, char *argv[])
