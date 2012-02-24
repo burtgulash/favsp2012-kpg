@@ -59,13 +59,13 @@ static void apply_sobel()
                     min = g;
             }
         }
-        
-        
+
+
 
         for (r = 1; r < h - 1; r++) {
             r_rs = r * rs;
             for (c = n_channels; c < rs - n_channels; c += n_channels) {
-                ns[r_rs + c + channel] = 
+                ns[r_rs + c + channel] =
                     ((tmp[r_rs + c + channel] - min) * 0xFF) / (max - min);
             }
         }
@@ -105,7 +105,7 @@ on_ulozit_clicked(GtkWidget *widget, gpointer data)
     response = gtk_dialog_run(GTK_DIALOG(dialog));
     if (response == GTK_RESPONSE_ACCEPT) {
         filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
-        
+
         if (err == NULL)
             gdk_pixbuf_save(buf[b], filename, "png", &err, NULL);
         else
@@ -135,7 +135,7 @@ on_otevrit_clicked(GtkWidget *widget, gpointer data)
     response = gtk_dialog_run(GTK_DIALOG(dialog));
     if (response == GTK_RESPONSE_ACCEPT) {
         filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
-        
+
         buf[b] = gdk_pixbuf_new_from_file(filename, &err);
 
         if (err == NULL) {
