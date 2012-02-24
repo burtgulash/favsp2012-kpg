@@ -6,7 +6,7 @@
 
 extern GtkWidget *window, *img;
 
-extern char *filename;
+extern char *filename, *image_format;
 extern int up, rp;
 extern GdkPixbuf *undo_stack[];
 
@@ -25,6 +25,7 @@ on_menu_open_activate(GtkWidget *widget, gpointer data)
     GtkResponseType response;
     GtkWidget *dialog;
     GdkPixbuf *buf;
+    GdkPixbufFormat *format;
     GError *err;
 
     err = NULL;
@@ -38,6 +39,8 @@ on_menu_open_activate(GtkWidget *widget, gpointer data)
     response = gtk_dialog_run(GTK_DIALOG(dialog));
     if (response == GTK_RESPONSE_ACCEPT) {
         filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
+        format = gdk_pixbuf_get_file_info(filename, NULL, NULL);
+        image_format = gdk_pixbuf_format_get_name(format);
 
         buf = gdk_pixbuf_new_from_file(filename, &err);
         if (err == NULL) {
@@ -71,8 +74,8 @@ on_menu_save_as_activate(GtkWidget *widget, gpointer data)
     if (response == GTK_RESPONSE_ACCEPT) {
         filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
 
-		/* Reuse callback for saving */
-		on_menu_save_activate(NULL, NULL);
+        /* Reuse callback for saving */
+        on_menu_save_activate(NULL, NULL);
     }
 
     gtk_widget_destroy(GTK_WIDGET(dialog));
@@ -83,13 +86,13 @@ G_MODULE_EXPORT void
 on_menu_save_activate(GtkWidget *widget, gpointer data)
 {
     GdkPixbuf *buf;
-	GError *err;
+    GError *err;
 
-	err = NULL;
+    err = NULL;
     /* TODO if not empty */
     buf = PEEK(undo_stack, up);
 
-    gdk_pixbuf_save(buf, filename, "png", &err, NULL);
+    gdk_pixbuf_save(buf, filename, image_format, &err, NULL);
     if (err != NULL)
         fprintf(stderr, "%s error saving image.\n", filename);
 }
