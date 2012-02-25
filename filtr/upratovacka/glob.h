@@ -1,11 +1,22 @@
 #ifndef GLOB_H
 #define GLOB_H
 
-#define STACK_SIZE 10
-#define IS_EMPTY(stack, sp) (sp <= 0)
-#define PUSH(stack, sp, buf) stack[sp++] = buf
-#define PEEK(stack, sp) stack[sp - 1]
-#define POP(stack, sp) stack[--sp]
+/* Macros for circular stack of GdkPixbufs of size S_SIZE. */
+#define S_SIZE (10 + 2)
+#define IS_EMPTY(stack, sp, start) (sp == start)
+#define HAS_LAST(stack, sp, start) ((sp - 1 + S_SIZE) % S_SIZE == start)
+#define IS_FULL(stack, sp, start) (sp == (start - 1 + S_SIZE) % S_SIZE)
+
+#define PEEK(stack, sp) stack[(sp - 1 + S_SIZE) % S_SIZE]
+#define POP(stack, sp) stack[(sp = (sp - 1 + S_SIZE) % S_SIZE)]
+#define PUSH(stack, sp, start, buf) {                                        \
+    if (IS_FULL(stack, sp, start)) {                                         \
+        gdk_pixbuf_unref(stack[start]);                                      \
+        start = (start + 1) % S_SIZE;                                        \
+    }                                                                        \
+    stack[sp] = buf;                                                         \
+    sp = (sp + 1) % S_SIZE;                                                  \
+}
 
 
 #define GET_WIDGET_BY_ID(builder, id)                                        \
@@ -16,15 +27,18 @@
              GTK_WIDGET(widgets.toolbutton_##do_button), sensitive)
 
 #define UPDATE_EDITED_IMAGE(buf) {                                           \
-    PUSH(undo_stack, up, buf);                                               \
-    while (!IS_EMPTY(redo_stack, rp))                                        \
-        gdk_pixbuf_unref(POP(redo_stack, rp));                                 \
+    PUSH(undo_stack, up, u_start, buf);                                      \
+    while (!IS_EMPTY(redo_stack, rp, r_start))                               \
+        gdk_pixbuf_unref(POP(redo_stack, rp));                               \
+    SET_SENSITIVITY_DO_BUTTON(undo, TRUE);                                   \
     SET_SENSITIVITY_DO_BUTTON(redo, FALSE);                                  \
     UPDATE_IMAGE();                                                          \
 }
 
 #define UPDATE_IMAGE()                                                       \
     gtk_image_set_from_pixbuf(GTK_IMAGE(widgets.img), PEEK(undo_stack, up))
+
+
 
 typedef struct {
     GdkColorspace colorspace;

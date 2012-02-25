@@ -11,5 +11,5 @@ $(EXEC) : $(SRC)
 
 .PHONY: clean
 
-clean : $(EXEC)
+clean :
 	rm $(EXEC)

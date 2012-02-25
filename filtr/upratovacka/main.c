@@ -10,8 +10,10 @@
 /* Undo/Redo stacks. */
 int up = 0,
     rp = 0;
-GdkPixbuf *undo_stack[STACK_SIZE];
-GdkPixbuf *redo_stack[STACK_SIZE];
+int u_start = 0,
+    r_start = 0;
+GdkPixbuf *undo_stack[S_SIZE];
+GdkPixbuf *redo_stack[S_SIZE];
 
 /* Global parameters */
 char *filename, *image_format;
@@ -32,7 +34,7 @@ int main(int argc, char *argv[])
     gtk_builder_add_from_file(builder, "upratovac.glade", &err);
     if (err != NULL) {
         g_printerr("%s: can not load gui.\n", argv[0]);
-        exit(EXIT_FAILURE);
+        return EXIT_FAILURE;
     }
 
 

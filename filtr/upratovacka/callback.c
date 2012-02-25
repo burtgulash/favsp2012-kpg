@@ -9,30 +9,28 @@
 #include "glob.h"
 
 
-enum {SOBEL, PREWITT, ROBERTS_CROSS};
-enum {LUMINANCE, AVERAGE};
-
-#define ON_FILTER_CHOOSE(filter, apply_filter)                               \
+#define ON_FILTER_CHOOSE(filter)                                             \
 G_MODULE_EXPORT void                                                         \
-on_##filter##_choose(GtkWidget *widget, gpointer data)                       \
+on_filter_##filter##_choose(GtkWidget *widget, gpointer data)                \
 {                                                                            \
     int response, method;                                                    \
                                                                              \
-    if(!IS_EMPTY(undo_stack, up)) {                                          \
-        response = gtk_dialog_run(GTK_DIALOG(widgets.##filter##_dialog));    \
+    if(!IS_EMPTY(undo_stack, up, u_start)) {                                 \
+        response = gtk_dialog_run(GTK_DIALOG(widgets.filter##_dialog));      \
         if (response == 1) {                                                 \
             method = gtk_combo_box_get_active(                               \
-                     GTK_COMBO_BOX(widgets.##filter##_combo_box));           \
-            apply_filter(method);                                            \
+                     GTK_COMBO_BOX(widgets.filter##_combo_box));             \
+            apply_##filter(method);                                          \
         }                                                                    \
                                                                              \
-        gtk_widget_hide(widgets.##filter##_dialog);                          \
+        gtk_widget_hide(widgets.filter##_dialog);                            \
     }                                                                        \
 }
 
 
 extern char *filename, *image_format;
 extern int up, rp;
+extern int u_start, r_start;
 extern GdkPixbuf *undo_stack[];
 extern GdkPixbuf *redo_stack[];
 
@@ -40,26 +38,16 @@ extern pixbuf_data p_data;
 extern AppWidgets widgets;
 
 
+
 static void apply_edge_detect(int method);
 static void apply_gray_scale(int method);
 
+enum {SOBEL, PREWITT, ROBERTS_CROSS};
+enum {LUMINANCE, AVERAGE};
 
-G_MODULE_EXPORT void
-on_filter_gray_scale_choose(GtkWidget *widget, gpointer data)
-{
-    int response, method;
+ON_FILTER_CHOOSE(gray_scale)
+ON_FILTER_CHOOSE(edge_detect)
 
-    if(!IS_EMPTY(undo_stack, up)) {
-        response = gtk_dialog_run(GTK_DIALOG(widgets.gray_scale_dialog));
-        if (response == 1) {
-            method = gtk_combo_box_get_active(
-                     GTK_COMBO_BOX(widgets.gray_scale_combo_box));
-            apply_gray_scale(method);
-        }
-
-        gtk_widget_hide(widgets.gray_scale_dialog);
-    }
-}
 
 
 static void apply_gray_scale(int method)
@@ -165,35 +153,20 @@ static void apply_edge_detect(int method)
 
 
 G_MODULE_EXPORT void
-on_filter_edge_detect_choose(GtkWidget *widget, gpointer data)
-{
-    int response, method;
-
-    if(!IS_EMPTY(undo_stack, up)) {
-        response = gtk_dialog_run(GTK_DIALOG(widgets.edge_detect_dialog));
-        if (response == 1) {
-            method = gtk_combo_box_get_active(
-                     GTK_COMBO_BOX(widgets.edge_detect_combo_box));
-            apply_edge_detect(method);
-        }
-
-        gtk_widget_hide(widgets.edge_detect_dialog);
-    }
-}
-
-
-G_MODULE_EXPORT void
 on_undo_clicked(GtkWidget *widget, gpointer data)
 {
     GdkPixbuf *buf;
 
-    if (!IS_EMPTY(undo_stack, up)) {
+    if (!IS_EMPTY(undo_stack, up, u_start) &&
+        !HAS_LAST(undo_stack, up, u_start))
+    {
         buf = POP(undo_stack, up);
-        PUSH(redo_stack, rp, buf);
+        PUSH(redo_stack, rp, r_start, buf);
         UPDATE_IMAGE();
 
         SET_SENSITIVITY_DO_BUTTON(redo, TRUE);
-        if (IS_EMPTY(undo_stack, up))
+        if (IS_EMPTY(undo_stack, up, u_start) ||
+            HAS_LAST(undo_stack, up, u_start))
             SET_SENSITIVITY_DO_BUTTON(undo, FALSE);
 
         g_print("Undo\n");
@@ -206,13 +179,13 @@ on_redo_clicked(GtkWidget *widget, gpointer data)
 {
     GdkPixbuf *buf;
 
-    if (!IS_EMPTY(redo_stack, rp)) {
+    if (!IS_EMPTY(redo_stack, rp, r_start)) {
         buf = POP(redo_stack, rp);
-        PUSH(undo_stack, up, buf);
+        PUSH(undo_stack, up, u_start, buf);
         UPDATE_IMAGE();
 
         SET_SENSITIVITY_DO_BUTTON(undo, TRUE);
-        if (IS_EMPTY(redo_stack, rp))
+        if (IS_EMPTY(redo_stack, rp, r_start))
             SET_SENSITIVITY_DO_BUTTON(redo, FALSE);
 
         g_print("Redo\n");
@@ -224,6 +197,7 @@ G_MODULE_EXPORT void
 on_about_activate(GtkWidget *widget, gpointer data)
 {
     gtk_dialog_run(GTK_DIALOG(widgets.aboutdialog));
+    g_print("About\n");
     gtk_widget_hide(widgets.aboutdialog);
 }
 
@@ -247,10 +221,8 @@ on_menu_open_activate(GtkWidget *widget, gpointer data)
 
         buf = gdk_pixbuf_new_from_file(filename, &err);
         if (err == NULL) {
-            PUSH(undo_stack, up, buf);
-            gtk_image_set_from_pixbuf(GTK_IMAGE(widgets.img), buf);
-
-            SET_SENSITIVITY_DO_BUTTON(undo, TRUE);
+            PUSH(undo_stack, up, u_start, buf);
+            UPDATE_IMAGE();
 
             p_data.colorspace = gdk_pixbuf_get_colorspace(buf);
             p_data.has_alpha = gdk_pixbuf_get_has_alpha(buf);
