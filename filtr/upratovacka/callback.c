@@ -1,5 +1,6 @@
 #include <gtk/gtk.h>
 
+#include <assert.h>
 #include <stdlib.h>
 
 #include "callback.h"
@@ -7,10 +8,14 @@
 #include "glob.h"
 
 
-#define UPDATE_IMAGE(buf) {                                                  \
+#define UPDATE_EDITED_IMAGE(buf) {                                           \
     PUSH(undo_stack, up, buf);                                               \
-    gtk_image_set_from_pixbuf(GTK_IMAGE(widgets.img), buf);                  \
+    UPDATE_IMAGE();                                                          \
 }                                                                            \
+
+#define UPDATE_IMAGE()                                                       \
+    gtk_image_set_from_pixbuf(GTK_IMAGE(widgets.img), PEEK(undo_stack, up))  \
+
 
 enum {SOBEL, PREWITT, ROBERTS_CROSS};
 
@@ -18,6 +23,7 @@ enum {SOBEL, PREWITT, ROBERTS_CROSS};
 extern char *filename, *image_format;
 extern int up, rp;
 extern GdkPixbuf *undo_stack[];
+extern GdkPixbuf *redo_stack[];
 
 extern pixbuf_data p_data;
 extern AppWidgets widgets;
@@ -27,18 +33,28 @@ static void apply_edge_detect(int method);
 
 
 G_MODULE_EXPORT void
-on_filter_edge_detect_choose(GtkWidget *widget, gpointer data)
+on_undo_clicked(GtkWidget *widget, gpointer data)
 {
-    int response, method;
-
-    response = gtk_dialog_run(GTK_DIALOG(widgets.edge_detect_dialog));
-    if (response == 1) {
-        method = gtk_combo_box_get_active(
-                 GTK_COMBO_BOX(widgets.edge_detect_combo_box));
-        apply_edge_detect(method);
+    GdkPixbuf *buf;
+    
+    if (!IS_EMPTY(undo_stack, up)) {
+        buf = POP(undo_stack, up);
+        PUSH(redo_stack, rp, buf);
+        UPDATE_IMAGE();
     }
+}
 
-    gtk_widget_hide(widgets.edge_detect_dialog);
+
+G_MODULE_EXPORT void
+on_redo_clicked(GtkWidget *widget, gpointer data)
+{
+    GdkPixbuf *buf;
+
+    if (!IS_EMPTY(redo_stack, rp)) {
+        buf = POP(redo_stack, rp);
+        PUSH(undo_stack, up, buf);
+        UPDATE_IMAGE();
+    }
 }
 
 
@@ -100,9 +116,25 @@ static void apply_edge_detect(int method)
         }
     }
     
-    UPDATE_IMAGE(new);
+    UPDATE_EDITED_IMAGE(new);
 
     free(filtered);
+}
+
+
+G_MODULE_EXPORT void
+on_filter_edge_detect_choose(GtkWidget *widget, gpointer data)
+{
+    int response, method;
+
+    response = gtk_dialog_run(GTK_DIALOG(widgets.edge_detect_dialog));
+    if (response == 1) {
+        method = gtk_combo_box_get_active(
+                 GTK_COMBO_BOX(widgets.edge_detect_combo_box));
+        apply_edge_detect(method);
+    }
+
+    gtk_widget_hide(widgets.edge_detect_dialog);
 }
 
 

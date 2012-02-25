@@ -4,6 +4,12 @@
 #include <gtk/gtk.h>
 
 G_MODULE_EXPORT void
+on_undo_clicked(GtkWidget *widget, gpointer data);
+
+G_MODULE_EXPORT void
+on_redo_clicked(GtkWidget *widget, gpointer data);
+
+G_MODULE_EXPORT void
 on_filter_edge_detect_choose(GtkWidget *widget, gpointer data);
 
 G_MODULE_EXPORT void

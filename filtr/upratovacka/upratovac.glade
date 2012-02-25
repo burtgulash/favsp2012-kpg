@@ -362,6 +362,7 @@ as the name is changed.
                 <property name="label" translatable="yes">toolbutton2</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-undo</property>
+                <signal name="clicked" handler="on_undo_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -376,6 +377,7 @@ as the name is changed.
                 <property name="label" translatable="yes">toolbutton3</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-redo</property>
+                <signal name="clicked" handler="on_redo_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -402,6 +404,7 @@ as the name is changed.
                   <object class="GtkImage" id="img">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
+                    <property name="hexpand">True</property>
                     <property name="vexpand">True</property>
                     <property name="stock">gtk-missing-image</property>
                   </object>
