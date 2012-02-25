@@ -357,6 +357,7 @@ as the name is changed.
             <child>
               <object class="GtkToolButton" id="toolbutton_undo">
                 <property name="visible">True</property>
+                <property name="sensitive">False</property>
                 <property name="can_focus">False</property>
                 <property name="use_action_appearance">False</property>
                 <property name="label" translatable="yes">toolbutton2</property>
@@ -372,6 +373,7 @@ as the name is changed.
             <child>
               <object class="GtkToolButton" id="toolbutton_redo">
                 <property name="visible">True</property>
+                <property name="sensitive">False</property>
                 <property name="can_focus">False</property>
                 <property name="use_action_appearance">False</property>
                 <property name="label" translatable="yes">toolbutton3</property>

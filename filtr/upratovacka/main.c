@@ -34,14 +34,22 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
+
     /* Populate global widgets. */
     widgets.window = GET_WIDGET_BY_ID(builder, "window");
     widgets.img = GET_WIDGET_BY_ID(builder, "img");
     widgets.aboutdialog = GET_WIDGET_BY_ID(builder, "aboutdialog");
-    widgets.edge_detect_dialog = 
+
+    widgets.edge_detect_dialog =
                     GET_WIDGET_BY_ID(builder, "edge_detect_dialog");
-    widgets.edge_detect_combo_box = 
+    widgets.edge_detect_combo_box =
                     GET_WIDGET_BY_ID(builder, "edge_detect_combo_box");
+
+    widgets.toolbutton_undo =
+                    GET_WIDGET_BY_ID(builder, "toolbutton_undo");
+    widgets.toolbutton_redo =
+                    GET_WIDGET_BY_ID(builder, "toolbutton_redo");
+
 
     /* Connect signals. */
     gtk_builder_connect_signals(builder, &widgets);

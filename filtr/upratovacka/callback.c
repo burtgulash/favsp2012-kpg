@@ -8,15 +8,6 @@
 #include "glob.h"
 
 
-#define UPDATE_EDITED_IMAGE(buf) {                                           \
-    PUSH(undo_stack, up, buf);                                               \
-    UPDATE_IMAGE();                                                          \
-}                                                                            \
-
-#define UPDATE_IMAGE()                                                       \
-    gtk_image_set_from_pixbuf(GTK_IMAGE(widgets.img), PEEK(undo_stack, up))  \
-
-
 enum {SOBEL, PREWITT, ROBERTS_CROSS};
 
 
@@ -36,11 +27,15 @@ G_MODULE_EXPORT void
 on_undo_clicked(GtkWidget *widget, gpointer data)
 {
     GdkPixbuf *buf;
-    
+
     if (!IS_EMPTY(undo_stack, up)) {
         buf = POP(undo_stack, up);
         PUSH(redo_stack, rp, buf);
         UPDATE_IMAGE();
+
+        SET_SENSITIVITY_DO_BUTTON(redo, TRUE);
+        if (IS_EMPTY(undo_stack, up))
+            SET_SENSITIVITY_DO_BUTTON(undo, FALSE);
     }
 }
 
@@ -54,6 +49,10 @@ on_redo_clicked(GtkWidget *widget, gpointer data)
         buf = POP(redo_stack, rp);
         PUSH(undo_stack, up, buf);
         UPDATE_IMAGE();
+
+        SET_SENSITIVITY_DO_BUTTON(undo, TRUE);
+        if (IS_EMPTY(redo_stack, rp))
+            SET_SENSITIVITY_DO_BUTTON(redo, FALSE);
     }
 }
 
@@ -69,7 +68,7 @@ static void apply_edge_detect(int method)
     guchar /* *ps ,*/ *news;
 
     buf = PEEK(undo_stack, up);
-    new = gdk_pixbuf_new(p_data.colorspace, 
+    new = gdk_pixbuf_new(p_data.colorspace,
                          p_data.has_alpha,
                          p_data.bits_per_sample,
                          p_data.width,
@@ -93,7 +92,7 @@ static void apply_edge_detect(int method)
         default:
             filtered = roberts_cross(buf);
     }
-    
+
     for (channel = 0; channel < 3; channel++) {
         min = 0x0;
         max = 0xFF;
@@ -115,7 +114,7 @@ static void apply_edge_detect(int method)
             }
         }
     }
-    
+
     UPDATE_EDITED_IMAGE(new);
 
     free(filtered);
@@ -127,14 +126,16 @@ on_filter_edge_detect_choose(GtkWidget *widget, gpointer data)
 {
     int response, method;
 
-    response = gtk_dialog_run(GTK_DIALOG(widgets.edge_detect_dialog));
-    if (response == 1) {
-        method = gtk_combo_box_get_active(
-                 GTK_COMBO_BOX(widgets.edge_detect_combo_box));
-        apply_edge_detect(method);
-    }
+    if(!IS_EMPTY(undo_stack, up)) {
+        response = gtk_dialog_run(GTK_DIALOG(widgets.edge_detect_dialog));
+        if (response == 1) {
+            method = gtk_combo_box_get_active(
+                     GTK_COMBO_BOX(widgets.edge_detect_combo_box));
+            apply_edge_detect(method);
+        }
 
-    gtk_widget_hide(widgets.edge_detect_dialog);
+        gtk_widget_hide(widgets.edge_detect_dialog);
+    }
 }
 
 
@@ -173,6 +174,8 @@ on_menu_open_activate(GtkWidget *widget, gpointer data)
         if (err == NULL) {
             PUSH(undo_stack, up, buf);
             gtk_image_set_from_pixbuf(GTK_IMAGE(widgets.img), buf);
+
+            SET_SENSITIVITY_DO_BUTTON(undo, TRUE);
 
             p_data.colorspace = gdk_pixbuf_get_colorspace(buf);
             p_data.has_alpha = gdk_pixbuf_get_has_alpha(buf);
