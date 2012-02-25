@@ -8,53 +8,53 @@
 
 void gray_scale_luminance(guchar ps[], int h, int s, int n_chans)
 {
-	int x, y, channel, offset;
-	double sum;
+    int x, y, channel, offset;
+    double sum;
 
-	for (y = 0; y < h; y++) {
-		for (x = 0; x < s; x += n_chans) {
-			offset = y * s + x;
+    for (y = 0; y < h; y++) {
+        for (x = 0; x < s; x += n_chans) {
+            offset = y * s + x;
 
-			if (n_chans >= 3) {
-				sum = .2125 * ps[offset]
+            if (n_chans >= 3) {
+                sum = .2125 * ps[offset]
                     + .7152 * ps[offset + 1]
                     + .0722 * ps[offset + 2];
 
-				for (channel = 0; channel < 3; channel++)
-					ps[offset + channel] = (guchar) sum;
-			}
-		}
-	}
+                for (channel = 0; channel < 3; channel++)
+                    ps[offset + channel] = (guchar) sum;
+            }
+        }
+    }
 }
 
 
 void gray_scale_avg(guchar ps[], int h, int s, int n_chans)
 {
-	int x, y, channel, offset;
-	int sum;
+    int x, y, channel, offset;
+    int sum;
 
-	for (y = 0; y < h; y++) {
-		for (x = 0; x < s; x += n_chans) {
-			offset = y * s + x;
+    for (y = 0; y < h; y++) {
+        for (x = 0; x < s; x += n_chans) {
+            offset = y * s + x;
 
-			if (n_chans >= 3) {
-				sum = (ps[offset] + ps[offset + 1] + ps[offset + 2]) / 3;
+            if (n_chans >= 3) {
+                sum = (ps[offset] + ps[offset + 1] + ps[offset + 2]) / 3;
 
-				for (channel = 0; channel < MIN(3, n_chans); channel++)
-					ps[offset + channel] = (guchar) sum;
-			}
-		}
-	}
+                for (channel = 0; channel < MIN(3, n_chans); channel++)
+                    ps[offset + channel] = (guchar) sum;
+            }
+        }
+    }
 }
 
 
 int* sobel(guchar ps[], int h, int s, int n_chans)
 {
-    int sobel_x[] = {-1, 0, 1, 
-                     -2, 0, 2, 
+    int sobel_x[] = {-1, 0, 1,
+                     -2, 0, 2,
                      -1, 0, 1};
-    int sobel_y[] = {-1,-2,-1, 
-                      0, 0, 0, 
+    int sobel_y[] = {-1,-2,-1,
+                      0, 0, 0,
                       1, 2, 1};
 
     return edge_detect(3, sobel_x, sobel_y, ps, h, s, n_chans);
@@ -62,11 +62,11 @@ int* sobel(guchar ps[], int h, int s, int n_chans)
 
 int* prewitt(guchar ps[], int h, int s, int n_chans)
 {
-    int prewitt_x[] = {-1, 0, 1, 
-                     -1, 0, 1, 
+    int prewitt_x[] = {-1, 0, 1,
+                     -1, 0, 1,
                      -1, 0, 1};
-    int prewitt_y[] = {-1,-1,-1, 
-                      0, 0, 0, 
+    int prewitt_y[] = {-1,-1,-1,
+                      0, 0, 0,
                       1, 1, 1};
 
     return edge_detect(3, prewitt_x, prewitt_y, ps, h, s, n_chans);
@@ -84,7 +84,7 @@ int* roberts_cross(guchar ps[], int h, int s, int n_chans)
 
 
 
-int* edge_detect(int c_size, int cx[], int cy[], 
+int* edge_detect(int c_size, int cx[], int cy[],
                  guchar ps[], int h, int s, int n_chans)
 {
     int c_half;

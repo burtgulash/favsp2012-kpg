@@ -69,7 +69,7 @@ static void apply_gray_scale(int method)
     guchar *news;
 
     buf = PEEK(undo_stack, up);
-	new = gdk_pixbuf_copy(buf);
+    new = gdk_pixbuf_copy(buf);
 
     news = gdk_pixbuf_get_pixels(new);
     h = gdk_pixbuf_get_height(buf);
@@ -77,20 +77,20 @@ static void apply_gray_scale(int method)
     n_chans = gdk_pixbuf_get_n_channels(buf);
 
 
-	g_print("Apply gray_scale filter ");
-	switch (method) {
-		case AVERAGE:
-			g_print("average");
-			gray_scale_avg(news, h, s, n_chans);
-			break;
-	
-		default:
-			g_print("luminance");
-			gray_scale_luminance(news, h, s, n_chans);
-	}
-	g_print("\n");
+    g_print("Apply gray_scale filter ");
+    switch (method) {
+        case AVERAGE:
+            g_print("average");
+            gray_scale_avg(news, h, s, n_chans);
+            break;
 
-	UPDATE_EDITED_IMAGE(new);
+        default:
+            g_print("luminance");
+            gray_scale_luminance(news, h, s, n_chans);
+    }
+    g_print("\n");
+
+    UPDATE_EDITED_IMAGE(new);
 }
 
 
@@ -118,23 +118,23 @@ static void apply_edge_detect(int method)
     n_chans = gdk_pixbuf_get_n_channels(buf);
 
 
-	g_print("Apply edge detection filter ");
+    g_print("Apply edge detection filter ");
     switch (method) {
         case SOBEL:
-			g_print("Sobel");
+            g_print("Sobel");
             filtered = sobel(ps, h, s, n_chans);
             break;
 
         case PREWITT:
-			g_print("Prewitt");
+            g_print("Prewitt");
             filtered = prewitt(ps, h, s, n_chans);
             break;
 
         default:
-			g_print("Roberts cross");
+            g_print("Roberts cross");
             filtered = roberts_cross(ps, h, s, n_chans);
     }
-	g_print("\n");
+    g_print("\n");
 
     for (channel = 0; channel < MIN(3, n_chans); channel++) {
         min = 0x0;
@@ -196,7 +196,7 @@ on_undo_clicked(GtkWidget *widget, gpointer data)
         if (IS_EMPTY(undo_stack, up))
             SET_SENSITIVITY_DO_BUTTON(undo, FALSE);
 
-		g_print("Undo");
+        g_print("Undo\n");
     }
 }
 
@@ -215,7 +215,7 @@ on_redo_clicked(GtkWidget *widget, gpointer data)
         if (IS_EMPTY(redo_stack, rp))
             SET_SENSITIVITY_DO_BUTTON(redo, FALSE);
 
-		g_print("Redo");
+        g_print("Redo\n");
     }
 }
 
