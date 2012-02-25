@@ -9,19 +9,40 @@
 
 #define UPDATE_IMAGE(buf) {                                                  \
     PUSH(undo_stack, up, buf);                                               \
-    gtk_image_set_from_pixbuf(GTK_IMAGE(img), buf);                          \
+    gtk_image_set_from_pixbuf(GTK_IMAGE(widgets.img), buf);                  \
 }                                                                            \
 
-extern GtkWidget *window, *img;
+enum {SOBEL, PREWITT, ROBERTS_CROSS};
+
 
 extern char *filename, *image_format;
 extern int up, rp;
 extern GdkPixbuf *undo_stack[];
+
 extern pixbuf_data p_data;
+extern AppWidgets widgets;
+
+
+static void apply_edge_detect(int method);
 
 
 G_MODULE_EXPORT void
-on_filter_edge_detect_activate(GtkWidget *widget, gpointer data)
+on_filter_edge_detect_choose(GtkWidget *widget, gpointer data)
+{
+    int response, method;
+
+    response = gtk_dialog_run(GTK_DIALOG(widgets.edge_detect_dialog));
+    if (response == 1) {
+        method = gtk_combo_box_get_active(
+                 GTK_COMBO_BOX(widgets.edge_detect_combo_box));
+        apply_edge_detect(method);
+    }
+
+    gtk_widget_hide(widgets.edge_detect_dialog);
+}
+
+
+static void apply_edge_detect(int method)
 {
     int h, s, n_chans;
     int min, max;
@@ -44,7 +65,18 @@ on_filter_edge_detect_activate(GtkWidget *widget, gpointer data)
     s = gdk_pixbuf_get_rowstride(buf);
     n_chans = gdk_pixbuf_get_n_channels(buf);
 
-    filtered = roberts_cross(buf);
+    switch (method) {
+        case SOBEL:
+            filtered = sobel(buf);
+            break;
+
+        case PREWITT:
+            filtered = prewitt(buf);
+            break;
+
+        default:
+            filtered = roberts_cross(buf);
+    }
     
     for (channel = 0; channel < 3; channel++) {
         min = 0x0;
@@ -77,8 +109,8 @@ on_filter_edge_detect_activate(GtkWidget *widget, gpointer data)
 G_MODULE_EXPORT void
 on_about_activate(GtkWidget *widget, gpointer data)
 {
-    gtk_dialog_run(GTK_DIALOG(widget));
-    gtk_widget_hide(widget);
+    gtk_dialog_run(GTK_DIALOG(widgets.aboutdialog));
+    gtk_widget_hide(widgets.aboutdialog);
 }
 
 
@@ -93,7 +125,7 @@ on_menu_open_activate(GtkWidget *widget, gpointer data)
 
     err = NULL;
     dialog = gtk_file_chooser_dialog_new("Otevřít obrázek",
-                                         GTK_WINDOW(window),
+                                         GTK_WINDOW(widgets.window),
                                          GTK_FILE_CHOOSER_ACTION_OPEN,
                                          GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
                                          GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
@@ -108,7 +140,7 @@ on_menu_open_activate(GtkWidget *widget, gpointer data)
         buf = gdk_pixbuf_new_from_file(filename, &err);
         if (err == NULL) {
             PUSH(undo_stack, up, buf);
-            gtk_image_set_from_pixbuf(GTK_IMAGE(img), buf);
+            gtk_image_set_from_pixbuf(GTK_IMAGE(widgets.img), buf);
 
             p_data.colorspace = gdk_pixbuf_get_colorspace(buf);
             p_data.has_alpha = gdk_pixbuf_get_has_alpha(buf);
@@ -131,7 +163,7 @@ on_menu_save_as_activate(GtkWidget *widget, gpointer data)
     GtkWidget *dialog;
 
     dialog = gtk_file_chooser_dialog_new("Uložit jako",
-                                         GTK_WINDOW(window),
+                                         GTK_WINDOW(widgets.window),
                                          GTK_FILE_CHOOSER_ACTION_SAVE,
                                          GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
                                          GTK_STOCK_SAVE_AS, GTK_RESPONSE_ACCEPT,
