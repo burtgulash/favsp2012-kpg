@@ -33,11 +33,146 @@
       </object>
     </child>
   </object>
+  <object class="GtkDialog" id="difference_of_gaussians_dialog">
+    <property name="can_focus">False</property>
+    <property name="border_width">5</property>
+    <property name="title" translatable="yes">Difference of Gaussians</property>
+    <property name="type_hint">dialog</property>
+    <property name="has_resize_grip">False</property>
+    <child internal-child="vbox">
+      <object class="GtkBox" id="dialog-vbox4">
+        <property name="can_focus">False</property>
+        <property name="orientation">vertical</property>
+        <property name="spacing">2</property>
+        <child internal-child="action_area">
+          <object class="GtkButtonBox" id="dialog-action_area4">
+            <property name="can_focus">False</property>
+            <property name="layout_style">end</property>
+            <child>
+              <object class="GtkButton" id="button10">
+                <property name="label">gtk-cancel</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="use_action_appearance">False</property>
+                <property name="use_stock">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="button9">
+                <property name="label">gtk-ok</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="use_action_appearance">False</property>
+                <property name="use_stock">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="pack_type">end</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkGrid" id="grid1">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="row_spacing">5</property>
+            <property name="column_spacing">5</property>
+            <property name="row_homogeneous">True</property>
+            <property name="n_rows">2</property>
+            <property name="n_columns">2</property>
+            <child>
+              <object class="GtkScale" id="scale1">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="hexpand">True</property>
+                <property name="fill_level">100</property>
+                <property name="round_digits">1</property>
+              </object>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="top_attach">0</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkScale" id="scale2">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="hexpand">True</property>
+                <property name="fill_level">100</property>
+                <property name="round_digits">1</property>
+              </object>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="top_attach">1</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="gaussian_first">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">First</property>
+              </object>
+              <packing>
+                <property name="left_attach">0</property>
+                <property name="top_attach">0</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="gaussian_second">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">Second</property>
+              </object>
+              <packing>
+                <property name="left_attach">0</property>
+                <property name="top_attach">1</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">True</property>
+            <property name="fill">True</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+    <action-widgets>
+      <action-widget response="0">button10</action-widget>
+      <action-widget response="1">button9</action-widget>
+    </action-widgets>
+  </object>
   <object class="GtkDialog" id="edge_detect_dialog">
     <property name="can_focus">False</property>
     <property name="border_width">5</property>
     <property name="title" translatable="yes">Detekce hran</property>
     <property name="window_position">center-on-parent</property>
+    <property name="default_width">320</property>
+    <property name="default_height">260</property>
+    <property name="destroy_with_parent">True</property>
     <property name="type_hint">dialog</property>
     <property name="has_resize_grip">False</property>
     <child internal-child="vbox">
@@ -127,6 +262,9 @@
       </row>
       <row>
         <col id="0" translatable="yes">Roberts Cross</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Laplace</col>
       </row>
     </data>
   </object>
@@ -381,7 +519,7 @@
                 <property name="label" translatable="yes">_File</property>
                 <property name="use_underline">True</property>
                 <child type="submenu">
-                  <object class="GtkMenu" id="menu1">
+                  <object class="GtkMenu" id="file_menu">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="ubuntu_local">True</property>
@@ -426,7 +564,7 @@
                       </object>
                     </child>
                     <child>
-                      <object class="GtkImageMenuItem" id="imagemenuitem5">
+                      <object class="GtkImageMenuItem" id="menu_quit">
                         <property name="label">gtk-quit</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
@@ -448,7 +586,7 @@
                 <property name="label" translatable="yes">Filters</property>
                 <property name="use_underline">True</property>
                 <child type="submenu">
-                  <object class="GtkMenu" id="menu2">
+                  <object class="GtkMenu" id="filters_menu">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="ubuntu_local">True</property>
@@ -459,7 +597,33 @@
                         <property name="use_action_appearance">False</property>
                         <property name="label" translatable="yes">Edge detection</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_filter_edge_detect_choose" swapped="no"/>
+                        <child type="submenu">
+                          <object class="GtkMenu" id="edge_detect_menu">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="ubuntu_local">True</property>
+                            <child>
+                              <object class="GtkMenuItem" id="difference_of_gaussians">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="use_action_appearance">False</property>
+                                <property name="label" translatable="yes">Difference of Gaussians</property>
+                                <property name="use_underline">True</property>
+                                <signal name="activate" handler="on_filter_difference_of_gaussians_choose" swapped="no"/>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkMenuItem" id="edge_detection">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="use_action_appearance">False</property>
+                                <property name="label" translatable="yes">Edge detection</property>
+                                <property name="use_underline">True</property>
+                                <signal name="activate" handler="on_filter_edge_detect_choose" swapped="no"/>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
                       </object>
                     </child>
                     <child>
@@ -472,12 +636,22 @@
                         <signal name="activate" handler="on_filter_gray_scale_choose" swapped="no"/>
                       </object>
                     </child>
+                    <child>
+                      <object class="GtkMenuItem" id="filter_gaussian_blur">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="use_action_appearance">False</property>
+                        <property name="label" translatable="yes">Gaussian blur</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="on_filter_gaussian_blur_choose" swapped="no"/>
+                      </object>
+                    </child>
                   </object>
                 </child>
               </object>
             </child>
             <child>
-              <object class="GtkMenuItem" id="menuitem2">
+              <object class="GtkMenuItem" id="help_menu">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="use_action_appearance">False</property>

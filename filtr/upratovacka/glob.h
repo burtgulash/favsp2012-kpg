@@ -65,6 +65,13 @@ typedef struct {
 
     GtkWidget *gray_scale_combo_box;
     GtkWidget *gray_scale_dialog;
+
+    GtkWidget *difference_of_gaussians_dialog;
+    GtkWidget *difference_of_gaussians_first;
+    GtkWidget *difference_of_gaussians_second;
+
+    GtkWidget *gaussian_blur_dialog;
+    GtkWidget *gaussian_blur_size;
 } AppWidgets;
 
 #endif /* !GLOB_H */

@@ -41,13 +41,116 @@ extern AppWidgets widgets;
 
 static void apply_edge_detect(int method);
 static void apply_gray_scale(int method);
+static void apply_difference_of_gaussians(double first, double second);
+static void apply_gaussian_blur();
 
-enum {SOBEL, PREWITT, ROBERTS_CROSS};
+enum {SOBEL, PREWITT, ROBERTS_CROSS, LAPLACE};
 enum {LUMINANCE, AVERAGE};
 
 ON_FILTER_CHOOSE(gray_scale)
 ON_FILTER_CHOOSE(edge_detect)
 
+G_MODULE_EXPORT void
+on_filter_difference_of_gaussians_choose(GtkWidget *widget, gpointer data)
+{
+    double first, second;
+    int response;
+
+    if(!IS_EMPTY(undo_stack, up, u_start)) {
+        response = gtk_dialog_run(
+                   GTK_DIALOG(widgets.difference_of_gaussians_dialog));
+        if (response == 1) {
+            first = gtk_range_get_value(
+                    GTK_RANGE(widgets.difference_of_gaussians_first));
+            second = gtk_range_get_value(
+                     GTK_RANGE(widgets.difference_of_gaussians_second));
+
+            apply_difference_of_gaussians(first, second);
+        }
+
+        gtk_widget_hide(widgets.difference_of_gaussians_dialog);
+    }
+}
+
+
+G_MODULE_EXPORT void
+on_filter_gaussian_blur_choose(GtkWidget *widget, gpointer data)
+{
+    int response, size;
+
+    if(!IS_EMPTY(undo_stack, up, u_start)) {
+        response = gtk_dialog_run(
+                   GTK_DIALOG(widgets.gaussian_blur_dialog));
+        if (response == 1) {
+            size = gtk_range_get_value(
+                   GTK_RANGE(widgets.gaussian_blur_size));
+
+            apply_gaussian_blur(size);
+        }
+
+        gtk_widget_hide(widgets.gaussian_blur_dialog);
+    }
+}
+
+
+static void apply_gaussian_blur(int size)
+{
+    GdkPixbuf *buf, *new;
+    guchar *ps, *news;
+    double *blur_matrix, *blurred;
+    int h, s, n_chans;
+    int value, offset;
+    int x, y, channel;
+    int min, max;
+
+    buf = PEEK(undo_stack, up);
+    new = gdk_pixbuf_new(p_data.colorspace,
+                         p_data.has_alpha,
+                         p_data.bits_per_sample,
+                         p_data.width,
+                         p_data.height);
+
+    ps = gdk_pixbuf_get_pixels(buf);
+    news = gdk_pixbuf_get_pixels(new);
+    h = gdk_pixbuf_get_height(buf);
+    s = gdk_pixbuf_get_rowstride(buf);
+    n_chans = gdk_pixbuf_get_n_channels(buf);
+
+    blur_matrix = gaussian_matrix(size);
+    blurred = gaussian_blur(size, blur_matrix, ps, h, s, n_chans);
+    g_free(blur_matrix);
+
+    for (channel = 0; channel < MIN(3, n_chans); channel++) {
+        min = 0x0;
+        max = 0xFF;
+
+        for (y = 0; y < h; y++) {
+            for (x = 0; x < s; x += n_chans) {
+                value = (int) blurred[y * s + x + channel];
+                if (value > max)
+                    max = value;
+                if (value < min)
+                    min = value;
+            }
+        }
+
+        for (y = 0; y < h; y++) {
+            for (x = 0; x < s; x += n_chans) {
+                offset = y * s + x + channel;
+                news[offset] = ((int) blurred[offset] - min) * 0xFF
+                             / (max - min);
+            }
+        }
+    }
+
+    g_free(blurred);
+    UPDATE_EDITED_IMAGE(new);
+}
+
+
+static void apply_difference_of_gaussians(double first, double second)
+{
+}
 
 
 static void apply_gray_scale(int method)
@@ -118,6 +221,11 @@ static void apply_edge_detect(int method)
             filtered = prewitt(ps, h, s, n_chans);
             break;
 
+        case LAPLACE:
+            g_print("Laplace");
+            filtered = laplace(ps, h, s, n_chans);
+            break;
+
         default:
             g_print("Roberts cross");
             filtered = roberts_cross(ps, h, s, n_chans);
@@ -146,9 +254,8 @@ static void apply_edge_detect(int method)
         }
     }
 
-    UPDATE_EDITED_IMAGE(new);
-
     g_free(filtered);
+    UPDATE_EDITED_IMAGE(new);
 }
 
 

@@ -83,6 +83,15 @@ int* roberts_cross(guchar ps[], int h, int s, int n_chans)
 }
 
 
+int* laplace(guchar ps[], int h, int s, int n_chans)
+{
+    int laplace[] = {-1, -1, -1,
+                     -1, +8, -1,
+                     -1, -1, -1};
+
+    return edge_detect(3, laplace, laplace, ps, h, s, n_chans);
+}
+
 
 int* edge_detect(int c_size, int cx[], int cy[],
                  guchar ps[], int h, int s, int n_chans)
@@ -118,6 +127,61 @@ int* edge_detect(int c_size, int cx[], int cy[],
                 }
 
                 res[offset] = (int) sqrt((double) (sumx * sumx + sumy * sumy));
+            }
+        }
+    }
+
+    return res;
+}
+
+double* gaussian_matrix(int size)
+{
+    int x, y;
+    double *m;
+
+    m = (double*) g_malloc(sizeof(double) * size * size);
+
+    for (y = 0; y < size; y++) {
+        for (x = 0; x < size; x++) {
+            /* TODO Generate Gaussian function with area = 255 ideally. */
+        }
+    }
+
+    return m;
+}
+
+double* gaussian_blur(int size, double *g,
+                      guchar ps[], int h, int s, int n_chans)
+{
+    int half;
+    int channel, x, y;
+    int xx, yy;
+    int offset, g_off, p_off;
+    double *res, sum;
+    guchar *p;
+
+    res = (double*) g_malloc(sizeof(double) * s * h);
+    half = size / 2;
+
+
+    for (channel = 0; channel < MIN(3, n_chans); channel++) {
+        for (y = half; y < h - half; y++) {
+            for (x = half; x < s - half * n_chans; x += n_chans) {
+                offset = y * s + x + channel;
+                p = ps + offset;
+
+                sum = 0.0;
+                /* Convolve image with convolution matrix c. */
+                for (yy = 0; yy < size; yy++) {
+                    for (xx = 0; xx < size; xx++) {
+                        g_off = yy * size + xx;
+                        p_off = (yy - half) * s + (xx - half) * n_chans;
+
+                        sum += g[g_off] * p[p_off];
+                    }
+                }
+
+                res[offset] = sum;
             }
         }
     }

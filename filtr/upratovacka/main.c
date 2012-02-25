@@ -64,6 +64,18 @@ int main(int argc, char *argv[])
     widgets.gray_scale_combo_box =
                     GET_WIDGET_BY_ID(builder, "gray_scale_combo_box");
 
+    widgets.difference_of_gaussians_dialog =
+                    GET_WIDGET_BY_ID(builder, "difference_of_gaussians_dialog");
+    widgets.difference_of_gaussians_first =
+                    GET_WIDGET_BY_ID(builder, "difference_of_gaussians_first");
+    widgets.difference_of_gaussians_second =
+                    GET_WIDGET_BY_ID(builder, "difference_of_gaussians_second");
+
+    widgets.gaussian_blur_dialog =
+                    GET_WIDGET_BY_ID(builder, "gaussian_blur_dialog");
+    widgets.gaussian_blur_size =
+                    GET_WIDGET_BY_ID(builder, "gaussian_blur_size");
+
 
 
     /* Connect signals. */
