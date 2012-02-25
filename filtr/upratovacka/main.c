@@ -50,6 +50,11 @@ int main(int argc, char *argv[])
     widgets.toolbutton_redo =
                     GET_WIDGET_BY_ID(builder, "toolbutton_redo");
 
+    widgets.filechooser_open =
+                    GET_WIDGET_BY_ID(builder, "filechooser_open");
+    widgets.filechooser_save_as =
+                    GET_WIDGET_BY_ID(builder, "filechooser_save_as");
+
 
     /* Connect signals. */
     gtk_builder_connect_signals(builder, &widgets);

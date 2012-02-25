@@ -44,6 +44,9 @@ typedef struct {
 
     GtkWidget *toolbutton_undo;
     GtkWidget *toolbutton_redo;
+
+    GtkWidget *filechooser_open;
+    GtkWidget *filechooser_save_as;
 } AppWidgets;
 
 #endif /* !GLOB_H */

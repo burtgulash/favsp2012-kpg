@@ -151,22 +151,16 @@ G_MODULE_EXPORT void
 on_menu_open_activate(GtkWidget *widget, gpointer data)
 {
     GtkResponseType response;
-    GtkWidget *dialog;
     GdkPixbuf *buf;
     GdkPixbufFormat *format;
     GError *err;
 
     err = NULL;
-    dialog = gtk_file_chooser_dialog_new("Otevřít obrázek",
-                                         GTK_WINDOW(widgets.window),
-                                         GTK_FILE_CHOOSER_ACTION_OPEN,
-                                         GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
-                                         GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
-                                         NULL);
+    response = gtk_dialog_run(GTK_DIALOG(widgets.filechooser_open));
 
-    response = gtk_dialog_run(GTK_DIALOG(dialog));
-    if (response == GTK_RESPONSE_ACCEPT) {
-        filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
+    if (response == 1) {
+        filename = gtk_file_chooser_get_filename(
+                    GTK_FILE_CHOOSER(widgets.filechooser_open));
         format = gdk_pixbuf_get_file_info(filename, NULL, NULL);
         image_format = gdk_pixbuf_format_get_name(format);
 
@@ -187,7 +181,7 @@ on_menu_open_activate(GtkWidget *widget, gpointer data)
         }
     }
 
-    gtk_widget_destroy(GTK_WIDGET(dialog));
+    gtk_widget_hide(GTK_WIDGET(widgets.filechooser_open));
 }
 
 
@@ -195,24 +189,17 @@ G_MODULE_EXPORT void
 on_menu_save_as_activate(GtkWidget *widget, gpointer data)
 {
     GtkResponseType response;
-    GtkWidget *dialog;
 
-    dialog = gtk_file_chooser_dialog_new("Uložit jako",
-                                         GTK_WINDOW(widgets.window),
-                                         GTK_FILE_CHOOSER_ACTION_SAVE,
-                                         GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
-                                         GTK_STOCK_SAVE_AS, GTK_RESPONSE_ACCEPT,
-                                         NULL);
-
-    response = gtk_dialog_run(GTK_DIALOG(dialog));
-    if (response == GTK_RESPONSE_ACCEPT) {
-        filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
+    response = gtk_dialog_run(GTK_DIALOG(widgets.filechooser_save_as));
+    if (response == 1) {
+        filename = gtk_file_chooser_get_filename(
+                   GTK_FILE_CHOOSER(widgets.filechooser_save_as));
 
         /* Reuse callback for saving */
         on_menu_save_activate(NULL, NULL);
     }
 
-    gtk_widget_destroy(GTK_WIDGET(dialog));
+    gtk_widget_hide(GTK_WIDGET(widgets.filechooser_save_as));
 }
 
 
