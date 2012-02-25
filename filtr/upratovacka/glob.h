@@ -18,7 +18,7 @@
 #define UPDATE_EDITED_IMAGE(buf) {                                           \
     PUSH(undo_stack, up, buf);                                               \
     while (!IS_EMPTY(redo_stack, rp))                                        \
-        g_object_unref(POP(redo_stack, rp));                                 \
+        gdk_pixbuf_unref(POP(redo_stack, rp));                                 \
     SET_SENSITIVITY_DO_BUTTON(redo, FALSE);                                  \
     UPDATE_IMAGE();                                                          \
 }
@@ -39,14 +39,18 @@ typedef struct {
     GtkWidget *img;
     GtkWidget *aboutdialog;
 
-    GtkWidget *edge_detect_combo_box;
-    GtkWidget *edge_detect_dialog;
-
     GtkWidget *toolbutton_undo;
     GtkWidget *toolbutton_redo;
 
     GtkWidget *filechooser_open;
     GtkWidget *filechooser_save_as;
+
+
+    GtkWidget *edge_detect_combo_box;
+    GtkWidget *edge_detect_dialog;
+
+    GtkWidget *gray_scale_combo_box;
+    GtkWidget *gray_scale_dialog;
 } AppWidgets;
 
 #endif /* !GLOB_H */

@@ -1,3 +1,4 @@
+#include <glib.h>
 #include <gtk/gtk.h>
 
 #include <stdio.h>
@@ -30,7 +31,7 @@ int main(int argc, char *argv[])
 
     gtk_builder_add_from_file(builder, "upratovac.glade", &err);
     if (err != NULL) {
-        fprintf(stderr, "%s: can not load gui.\n", argv[0]);
+        g_printerr("%s: can not load gui.\n", argv[0]);
         exit(EXIT_FAILURE);
     }
 
@@ -39,11 +40,6 @@ int main(int argc, char *argv[])
     widgets.window = GET_WIDGET_BY_ID(builder, "window");
     widgets.img = GET_WIDGET_BY_ID(builder, "img");
     widgets.aboutdialog = GET_WIDGET_BY_ID(builder, "aboutdialog");
-
-    widgets.edge_detect_dialog =
-                    GET_WIDGET_BY_ID(builder, "edge_detect_dialog");
-    widgets.edge_detect_combo_box =
-                    GET_WIDGET_BY_ID(builder, "edge_detect_combo_box");
 
     widgets.toolbutton_undo =
                     GET_WIDGET_BY_ID(builder, "toolbutton_undo");
@@ -54,6 +50,18 @@ int main(int argc, char *argv[])
                     GET_WIDGET_BY_ID(builder, "filechooser_open");
     widgets.filechooser_save_as =
                     GET_WIDGET_BY_ID(builder, "filechooser_save_as");
+
+
+    widgets.edge_detect_dialog =
+                    GET_WIDGET_BY_ID(builder, "edge_detect_dialog");
+    widgets.edge_detect_combo_box =
+                    GET_WIDGET_BY_ID(builder, "edge_detect_combo_box");
+
+    widgets.gray_scale_dialog =
+                    GET_WIDGET_BY_ID(builder, "gray_scale_dialog");
+    widgets.gray_scale_combo_box =
+                    GET_WIDGET_BY_ID(builder, "gray_scale_combo_box");
+
 
 
     /* Connect signals. */

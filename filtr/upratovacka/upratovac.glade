@@ -10,19 +10,6 @@
     <property name="has_resize_grip">False</property>
     <property name="program_name">Upratovač</property>
     <property name="version">0.9</property>
-    <property name="license" translatable="yes">DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
-                   Version 2, December 2004
-
-Copyright (C) 2004 Sam Hocevar &lt;sam@hocevar.net&gt;
-
-Everyone is permitted to copy and distribute verbatim or modified
-copies of this license document, and changing it is allowed as long
-as the name is changed.
-
-           DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
-  TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
-
- 0. You just DO WHAT THE FUCK YOU WANT TO.</property>
     <child internal-child="vbox">
       <object class="GtkBox" id="aboutdialog-vbox1">
         <property name="can_focus">False</property>
@@ -50,6 +37,7 @@ as the name is changed.
     <property name="can_focus">False</property>
     <property name="border_width">5</property>
     <property name="title" translatable="yes">Detekce hran</property>
+    <property name="window_position">center-on-parent</property>
     <property name="type_hint">dialog</property>
     <property name="has_resize_grip">False</property>
     <child internal-child="vbox">
@@ -103,7 +91,7 @@ as the name is changed.
           <object class="GtkComboBox" id="edge_detect_combo_box">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="model">edge_detection_filters</property>
+            <property name="model">edge_detection_methods</property>
             <property name="active">0</property>
             <child>
               <object class="GtkCellRendererText" id="cellrenderertext1"/>
@@ -125,9 +113,9 @@ as the name is changed.
       <action-widget response="1">button1</action-widget>
     </action-widgets>
   </object>
-  <object class="GtkListStore" id="edge_detection_filters">
+  <object class="GtkListStore" id="edge_detection_methods">
     <columns>
-      <!-- column-name Metoda -->
+      <!-- column-name method -->
       <column type="gchararray"/>
     </columns>
     <data>
@@ -273,6 +261,100 @@ as the name is changed.
       <action-widget response="1">button6</action-widget>
     </action-widgets>
   </object>
+  <object class="GtkDialog" id="gray_scale_dialog">
+    <property name="can_focus">False</property>
+    <property name="border_width">5</property>
+    <property name="title" translatable="yes">Odstíny šedi</property>
+    <property name="window_position">center-on-parent</property>
+    <property name="type_hint">dialog</property>
+    <property name="has_resize_grip">False</property>
+    <child internal-child="vbox">
+      <object class="GtkBox" id="dialog-vbox3">
+        <property name="can_focus">False</property>
+        <property name="orientation">vertical</property>
+        <property name="spacing">2</property>
+        <child internal-child="action_area">
+          <object class="GtkButtonBox" id="dialog-action_area3">
+            <property name="can_focus">False</property>
+            <property name="layout_style">end</property>
+            <child>
+              <object class="GtkButton" id="button7">
+                <property name="label">gtk-cancel</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="use_action_appearance">False</property>
+                <property name="use_stock">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="button8">
+                <property name="label">gtk-ok</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="use_action_appearance">False</property>
+                <property name="use_stock">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="pack_type">end</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkComboBox" id="gray_scale_combo_box">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="model">gray_scale_methods</property>
+            <property name="active">0</property>
+            <child>
+              <object class="GtkCellRendererText" id="cellrenderertext2"/>
+              <attributes>
+                <attribute name="text">0</attribute>
+              </attributes>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+    <action-widgets>
+      <action-widget response="0">button7</action-widget>
+      <action-widget response="1">button8</action-widget>
+    </action-widgets>
+  </object>
+  <object class="GtkListStore" id="gray_scale_methods">
+    <columns>
+      <!-- column-name method -->
+      <column type="gchararray"/>
+    </columns>
+    <data>
+      <row>
+        <col id="0" translatable="yes">Luminance</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Average</col>
+      </row>
+    </data>
+  </object>
   <object class="GtkWindow" id="window">
     <property name="can_focus">False</property>
     <property name="title" translatable="yes">Upratovač</property>
@@ -358,11 +440,11 @@ as the name is changed.
               </object>
             </child>
             <child>
-              <object class="GtkMenuItem" id="Filter">
+              <object class="GtkMenuItem" id="Filters">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="use_action_appearance">False</property>
-                <property name="label" translatable="yes">Filter</property>
+                <property name="label" translatable="yes">Filters</property>
                 <property name="use_underline">True</property>
                 <child type="submenu">
                   <object class="GtkMenu" id="menu2">
@@ -374,9 +456,19 @@ as the name is changed.
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="use_action_appearance">False</property>
-                        <property name="label" translatable="yes">edge detection</property>
+                        <property name="label" translatable="yes">Edge detection</property>
                         <property name="use_underline">True</property>
                         <signal name="activate" handler="on_filter_edge_detect_choose" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkMenuItem" id="filter_gray_scale">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="use_action_appearance">False</property>
+                        <property name="label" translatable="yes">Gray scale</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="on_filter_gray_scale_choose" swapped="no"/>
                       </object>
                     </child>
                   </object>

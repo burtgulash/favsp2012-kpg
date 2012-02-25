@@ -1,3 +1,4 @@
+#include <glib.h>
 #include <gtk/gtk.h>
 
 #include <assert.h>
@@ -9,6 +10,25 @@
 
 
 enum {SOBEL, PREWITT, ROBERTS_CROSS};
+enum {LUMINANCE, AVERAGE};
+
+#define ON_FILTER_CHOOSE(filter, apply_filter)                               \
+G_MODULE_EXPORT void                                                         \
+on_##filter##_choose(GtkWidget *widget, gpointer data)                       \
+{                                                                            \
+    int response, method;                                                    \
+                                                                             \
+    if(!IS_EMPTY(undo_stack, up)) {                                          \
+        response = gtk_dialog_run(GTK_DIALOG(widgets.##filter##_dialog));    \
+        if (response == 1) {                                                 \
+            method = gtk_combo_box_get_active(                               \
+                     GTK_COMBO_BOX(widgets.##filter##_combo_box));           \
+            apply_filter(method);                                            \
+        }                                                                    \
+                                                                             \
+        gtk_widget_hide(widgets.##filter##_dialog);                          \
+    }                                                                        \
+}
 
 
 extern char *filename, *image_format;
@@ -21,39 +41,56 @@ extern AppWidgets widgets;
 
 
 static void apply_edge_detect(int method);
+static void apply_gray_scale(int method);
 
 
 G_MODULE_EXPORT void
-on_undo_clicked(GtkWidget *widget, gpointer data)
+on_filter_gray_scale_choose(GtkWidget *widget, gpointer data)
 {
-    GdkPixbuf *buf;
+    int response, method;
 
-    if (!IS_EMPTY(undo_stack, up)) {
-        buf = POP(undo_stack, up);
-        PUSH(redo_stack, rp, buf);
-        UPDATE_IMAGE();
+    if(!IS_EMPTY(undo_stack, up)) {
+        response = gtk_dialog_run(GTK_DIALOG(widgets.gray_scale_dialog));
+        if (response == 1) {
+            method = gtk_combo_box_get_active(
+                     GTK_COMBO_BOX(widgets.gray_scale_combo_box));
+            apply_gray_scale(method);
+        }
 
-        SET_SENSITIVITY_DO_BUTTON(redo, TRUE);
-        if (IS_EMPTY(undo_stack, up))
-            SET_SENSITIVITY_DO_BUTTON(undo, FALSE);
+        gtk_widget_hide(widgets.gray_scale_dialog);
     }
 }
 
 
-G_MODULE_EXPORT void
-on_redo_clicked(GtkWidget *widget, gpointer data)
+static void apply_gray_scale(int method)
 {
-    GdkPixbuf *buf;
+    int h, s, n_chans;
+    GdkPixbuf *buf, *new;
+    guchar *news;
 
-    if (!IS_EMPTY(redo_stack, rp)) {
-        buf = POP(redo_stack, rp);
-        PUSH(undo_stack, up, buf);
-        UPDATE_IMAGE();
+    buf = PEEK(undo_stack, up);
+	new = gdk_pixbuf_copy(buf);
 
-        SET_SENSITIVITY_DO_BUTTON(undo, TRUE);
-        if (IS_EMPTY(redo_stack, rp))
-            SET_SENSITIVITY_DO_BUTTON(redo, FALSE);
-    }
+    news = gdk_pixbuf_get_pixels(new);
+    h = gdk_pixbuf_get_height(buf);
+    s = gdk_pixbuf_get_rowstride(buf);
+    n_chans = gdk_pixbuf_get_n_channels(buf);
+
+
+	g_print("Apply gray_scale filter ");
+	switch (method) {
+		case AVERAGE:
+			g_print("average");
+			gray_scale_avg(news, h, s, n_chans);
+			break;
+	
+		default:
+			g_print("luminance");
+			gray_scale_luminance(news, h, s, n_chans);
+	}
+	g_print("\n");
+
+	UPDATE_EDITED_IMAGE(new);
 }
 
 
@@ -65,7 +102,7 @@ static void apply_edge_detect(int method)
     int *filtered;
     int offset, value;
     GdkPixbuf *buf, *new;
-    guchar /* *ps ,*/ *news;
+    guchar *ps, *news;
 
     buf = PEEK(undo_stack, up);
     new = gdk_pixbuf_new(p_data.colorspace,
@@ -74,26 +111,32 @@ static void apply_edge_detect(int method)
                          p_data.width,
                          p_data.height);
 
-    /* ps = gdk_pixbuf_get_pixels(buf); */
+    ps = gdk_pixbuf_get_pixels(buf);
     news = gdk_pixbuf_get_pixels(new);
     h = gdk_pixbuf_get_height(buf);
     s = gdk_pixbuf_get_rowstride(buf);
     n_chans = gdk_pixbuf_get_n_channels(buf);
 
+
+	g_print("Apply edge detection filter ");
     switch (method) {
         case SOBEL:
-            filtered = sobel(buf);
+			g_print("Sobel");
+            filtered = sobel(ps, h, s, n_chans);
             break;
 
         case PREWITT:
-            filtered = prewitt(buf);
+			g_print("Prewitt");
+            filtered = prewitt(ps, h, s, n_chans);
             break;
 
         default:
-            filtered = roberts_cross(buf);
+			g_print("Roberts cross");
+            filtered = roberts_cross(ps, h, s, n_chans);
     }
+	g_print("\n");
 
-    for (channel = 0; channel < 3; channel++) {
+    for (channel = 0; channel < MIN(3, n_chans); channel++) {
         min = 0x0;
         max = 0xFF;
 
@@ -117,7 +160,7 @@ static void apply_edge_detect(int method)
 
     UPDATE_EDITED_IMAGE(new);
 
-    free(filtered);
+    g_free(filtered);
 }
 
 
@@ -135,6 +178,44 @@ on_filter_edge_detect_choose(GtkWidget *widget, gpointer data)
         }
 
         gtk_widget_hide(widgets.edge_detect_dialog);
+    }
+}
+
+
+G_MODULE_EXPORT void
+on_undo_clicked(GtkWidget *widget, gpointer data)
+{
+    GdkPixbuf *buf;
+
+    if (!IS_EMPTY(undo_stack, up)) {
+        buf = POP(undo_stack, up);
+        PUSH(redo_stack, rp, buf);
+        UPDATE_IMAGE();
+
+        SET_SENSITIVITY_DO_BUTTON(redo, TRUE);
+        if (IS_EMPTY(undo_stack, up))
+            SET_SENSITIVITY_DO_BUTTON(undo, FALSE);
+
+		g_print("Undo");
+    }
+}
+
+
+G_MODULE_EXPORT void
+on_redo_clicked(GtkWidget *widget, gpointer data)
+{
+    GdkPixbuf *buf;
+
+    if (!IS_EMPTY(redo_stack, rp)) {
+        buf = POP(redo_stack, rp);
+        PUSH(undo_stack, up, buf);
+        UPDATE_IMAGE();
+
+        SET_SENSITIVITY_DO_BUTTON(undo, TRUE);
+        if (IS_EMPTY(redo_stack, rp))
+            SET_SENSITIVITY_DO_BUTTON(redo, FALSE);
+
+		g_print("Redo");
     }
 }
 
@@ -177,7 +258,7 @@ on_menu_open_activate(GtkWidget *widget, gpointer data)
             p_data.width = gdk_pixbuf_get_width(buf);
             p_data.height = gdk_pixbuf_get_height(buf);
         } else {
-            fprintf(stderr, "%s is not an image.\n", filename);
+            g_printerr("%s is not an image.\n", filename);
         }
     }
 
@@ -215,5 +296,5 @@ on_menu_save_activate(GtkWidget *widget, gpointer data)
 
     gdk_pixbuf_save(buf, filename, image_format, &err, NULL);
     if (err != NULL)
-        fprintf(stderr, "%s error saving image.\n", filename);
+        g_printerr("%s error saving image.\n", filename);
 }

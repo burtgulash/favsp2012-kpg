@@ -1,4 +1,3 @@
-#include <gdk-pixbuf/gdk-pixbuf.h>
 #include <glib.h>
 
 #include <math.h> /* sqrt */
@@ -7,7 +6,49 @@
 #include "filters.h"
 
 
-int* sobel(GdkPixbuf *buf)
+void gray_scale_luminance(guchar ps[], int h, int s, int n_chans)
+{
+	int x, y, channel, offset;
+	double sum;
+
+	for (y = 0; y < h; y++) {
+		for (x = 0; x < s; x += n_chans) {
+			offset = y * s + x;
+
+			if (n_chans >= 3) {
+				sum = .2125 * ps[offset]
+                    + .7152 * ps[offset + 1]
+                    + .0722 * ps[offset + 2];
+
+				for (channel = 0; channel < 3; channel++)
+					ps[offset + channel] = (guchar) sum;
+			}
+		}
+	}
+}
+
+
+void gray_scale_avg(guchar ps[], int h, int s, int n_chans)
+{
+	int x, y, channel, offset;
+	int sum;
+
+	for (y = 0; y < h; y++) {
+		for (x = 0; x < s; x += n_chans) {
+			offset = y * s + x;
+
+			if (n_chans >= 3) {
+				sum = (ps[offset] + ps[offset + 1] + ps[offset + 2]) / 3;
+
+				for (channel = 0; channel < MIN(3, n_chans); channel++)
+					ps[offset + channel] = (guchar) sum;
+			}
+		}
+	}
+}
+
+
+int* sobel(guchar ps[], int h, int s, int n_chans)
 {
     int sobel_x[] = {-1, 0, 1, 
                      -2, 0, 2, 
@@ -16,10 +57,10 @@ int* sobel(GdkPixbuf *buf)
                       0, 0, 0, 
                       1, 2, 1};
 
-    return edge_detect(3, sobel_x, sobel_y, buf);
+    return edge_detect(3, sobel_x, sobel_y, ps, h, s, n_chans);
 }
 
-int* prewitt(GdkPixbuf *buf)
+int* prewitt(guchar ps[], int h, int s, int n_chans)
 {
     int prewitt_x[] = {-1, 0, 1, 
                      -1, 0, 1, 
@@ -28,43 +69,37 @@ int* prewitt(GdkPixbuf *buf)
                       0, 0, 0, 
                       1, 1, 1};
 
-    return edge_detect(3, prewitt_x, prewitt_y, buf);
+    return edge_detect(3, prewitt_x, prewitt_y, ps, h, s, n_chans);
 }
 
-int* roberts_cross(GdkPixbuf *buf)
+int* roberts_cross(guchar ps[], int h, int s, int n_chans)
 {
     int rc_x[] = {1, 0,
                   0, -1};
     int rc_y[] = {0, 1,
                  -1, 0};
 
-    return edge_detect(2, rc_x, rc_y, buf);
+    return edge_detect(2, rc_x, rc_y, ps, h, s, n_chans);
 }
 
 
 
-int* edge_detect(int c_size, int cx[], int cy[], GdkPixbuf *buf)
+int* edge_detect(int c_size, int cx[], int cy[], 
+                 guchar ps[], int h, int s, int n_chans)
 {
     int c_half;
     int channel, x, y;
     int xx, yy;
-    int h, s, n_chans;
     int offset, c_off, p_off;
     int *res;
     int sumx, sumy;
-    guchar *ps, *p;
+    guchar *p;
 
-    h = gdk_pixbuf_get_height(buf);
-    s = gdk_pixbuf_get_rowstride(buf);
-    n_chans = gdk_pixbuf_get_n_channels(buf);
-
-    ps = gdk_pixbuf_get_pixels(buf);
-    res = (int*) malloc(sizeof(int) * s * h);
-
+    res = (int*) g_malloc(sizeof(int) * s * h);
     c_half = c_size / 2;
 
 
-    for (channel = 0; channel < 3; channel++) {
+    for (channel = 0; channel < MIN(3, n_chans); channel++) {
         for (y = c_half; y < h - c_half; y++) {
             for (x = c_half; x < s - c_half * n_chans; x += n_chans) {
                 offset = y * s + x + channel;
