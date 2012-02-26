@@ -46,6 +46,8 @@ typedef struct {
     int bits_per_sample;
     int width;
     int height;
+	int rowstride;
+	int n_channels;
 } pixbuf_data;
 
 typedef struct {
@@ -71,7 +73,8 @@ typedef struct {
     GtkWidget *difference_of_gaussians_second;
 
     GtkWidget *gaussian_blur_dialog;
-    GtkWidget *gaussian_blur_size;
+    GtkWidget *gaussian_blur_horizontal;
+    GtkWidget *gaussian_blur_vertical;
 } AppWidgets;
 
 #endif /* !GLOB_H */

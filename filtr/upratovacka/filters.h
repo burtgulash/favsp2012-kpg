@@ -19,8 +19,7 @@ int* edge_detect(int c_size, int cx[], int cy[],
 
 
 /* Blur. */
-double* gaussian_matrix(int size);
-double* gaussian_blur(int size, double *g,
-                      guchar ps[], int h, int s, int n_chans);
-
+void gaussian_kernel(double sigma, int size, int k[]);
+void gaussian_blur(int size_x, int size_y, int kx[], int ky[],
+                   guchar dst[], guchar src[], int h, int s, int n_chans);
 #endif /* !FILTERS_H */

@@ -73,8 +73,10 @@ int main(int argc, char *argv[])
 
     widgets.gaussian_blur_dialog =
                     GET_WIDGET_BY_ID(builder, "gaussian_blur_dialog");
-    widgets.gaussian_blur_size =
-                    GET_WIDGET_BY_ID(builder, "gaussian_blur_size");
+    widgets.gaussian_blur_horizontal =
+                    GET_WIDGET_BY_ID(builder, "gaussian_blur_horizontal");
+    widgets.gaussian_blur_vertical =
+                    GET_WIDGET_BY_ID(builder, "gaussian_blur_vertical");
 
 
 

@@ -76,16 +76,20 @@ on_filter_difference_of_gaussians_choose(GtkWidget *widget, gpointer data)
 G_MODULE_EXPORT void
 on_filter_gaussian_blur_choose(GtkWidget *widget, gpointer data)
 {
-    int response, size;
+    int response;
+	double horizontal, vertical;
 
     if(!IS_EMPTY(undo_stack, up, u_start)) {
         response = gtk_dialog_run(
                    GTK_DIALOG(widgets.gaussian_blur_dialog));
         if (response == 1) {
-            size = gtk_range_get_value(
-                   GTK_RANGE(widgets.gaussian_blur_size));
+            horizontal = gtk_spin_button_get_value(
+                         GTK_SPIN_BUTTON(widgets.gaussian_blur_horizontal));
+            vertical = gtk_spin_button_get_value(
+                       GTK_SPIN_BUTTON(widgets.gaussian_blur_vertical));
+g_print("%g, %g\n", horizontal, vertical);
 
-            apply_gaussian_blur(size);
+            apply_gaussian_blur(horizontal, vertical);
         }
 
         gtk_widget_hide(widgets.gaussian_blur_dialog);
@@ -93,57 +97,40 @@ on_filter_gaussian_blur_choose(GtkWidget *widget, gpointer data)
 }
 
 
-static void apply_gaussian_blur(int size)
+/* TODO two directions. */
+static void apply_gaussian_blur(double horizontal, double vertical)
 {
     GdkPixbuf *buf, *new;
     guchar *ps, *news;
-    double *blur_matrix, *blurred;
-    int h, s, n_chans;
-    int value, offset;
-    int x, y, channel;
-    int min, max;
+    int *kernel_x, *kernel_y;
+	int size;
 
     buf = PEEK(undo_stack, up);
-    new = gdk_pixbuf_new(p_data.colorspace,
-                         p_data.has_alpha,
-                         p_data.bits_per_sample,
-                         p_data.width,
-                         p_data.height);
-
+	new = gdk_pixbuf_copy(buf);
     ps = gdk_pixbuf_get_pixels(buf);
     news = gdk_pixbuf_get_pixels(new);
-    h = gdk_pixbuf_get_height(buf);
-    s = gdk_pixbuf_get_rowstride(buf);
-    n_chans = gdk_pixbuf_get_n_channels(buf);
 
-    blur_matrix = gaussian_matrix(size);
-    blurred = gaussian_blur(size, blur_matrix, ps, h, s, n_chans);
-    g_free(blur_matrix);
+	size = 31;
 
-    for (channel = 0; channel < MIN(3, n_chans); channel++) {
-        min = 0x0;
-        max = 0xFF;
+	/* Make size odd number. */
+	size += size & 1;
+	size -= 1;
 
-        for (y = 0; y < h; y++) {
-            for (x = 0; x < s; x += n_chans) {
-                value = (int) blurred[y * s + x + channel];
-                if (value > max)
-                    max = value;
-                if (value < min)
-                    min = value;
-            }
-        }
 
-        for (y = 0; y < h; y++) {
-            for (x = 0; x < s; x += n_chans) {
-                offset = y * s + x + channel;
-                news[offset] = ((int) blurred[offset] - min) * 0xFF
-                             / (max - min);
-            }
-        }
-    }
+	kernel_x = g_malloc(sizeof(int) * size);
+	kernel_y = g_malloc(sizeof(int) * size);
+    gaussian_kernel(horizontal, size, kernel_x);
+    gaussian_kernel(vertical, size, kernel_y);
 
-    g_free(blurred);
+	gaussian_blur(size, size, kernel_x, kernel_y, 
+                  news, ps, 
+                  p_data.height, 
+                  p_data.rowstride,
+                  p_data.n_channels);
+
+    g_free(kernel_x);
+    g_free(kernel_y);
+
     UPDATE_EDITED_IMAGE(new);
 }
 
@@ -336,6 +323,8 @@ on_menu_open_activate(GtkWidget *widget, gpointer data)
             p_data.bits_per_sample = gdk_pixbuf_get_bits_per_sample(buf);
             p_data.width = gdk_pixbuf_get_width(buf);
             p_data.height = gdk_pixbuf_get_height(buf);
+			p_data.rowstride = gdk_pixbuf_get_rowstride(buf);
+			p_data.n_channels = gdk_pixbuf_get_n_channels(buf);
         } else {
             g_printerr("%s is not an image.\n", filename);
         }

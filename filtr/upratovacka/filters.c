@@ -110,7 +110,7 @@ int* edge_detect(int c_size, int cx[], int cy[],
 
     for (channel = 0; channel < MIN(3, n_chans); channel++) {
         for (y = c_half; y < h - c_half; y++) {
-            for (x = c_half; x < s - c_half * n_chans; x += n_chans) {
+            for (x = c_half * n_chans; x < s - c_half * n_chans; x += n_chans) {
                 offset = y * s + x + channel;
                 p = ps + offset;
 
@@ -134,57 +134,76 @@ int* edge_detect(int c_size, int cx[], int cy[],
     return res;
 }
 
-double* gaussian_matrix(int size)
+void gaussian_kernel(double sigma, int size, int k[])
 {
-    int x, y;
-    double *m;
+	int i, half;
 
-    m = (double*) g_malloc(sizeof(double) * size * size);
+	/* Assure that size is odd. */
+	size += size & 1;
+	size -= 1;
 
-    for (y = 0; y < size; y++) {
-        for (x = 0; x < size; x++) {
-            /* TODO Generate Gaussian function with area = 255 ideally. */
-        }
-    }
+	half = size / 2;
+	for (i = 0; i < size; i++)
+		k[i] = 0;
 
-    return m;
+#define SQRT_2_PI 2.5066282746
+	for (i = 0; i < half; i++) {
+		double gauss = exp(-.5 * (i * i) / (sigma * sigma)) 
+                     / (sigma * SQRT_2_PI);
+		k[half + i] = k[half - i] = (int) (gauss * 255.0);
+	}
 }
 
-double* gaussian_blur(int size, double *g,
-                      guchar ps[], int h, int s, int n_chans)
+
+void gaussian_blur(int size_x, int size_y, int kx[], int ky[],
+                   guchar dst[], guchar src[], int h, int s, int n_chans)
 {
-    int half;
-    int channel, x, y;
-    int xx, yy;
-    int offset, g_off, p_off;
-    double *res, sum;
+    int channel, x, y, i;
+    int sum, offset;
+	int kx_sum, ky_sum;
+	int half_x, half_y;
     guchar *p;
 
-    res = (double*) g_malloc(sizeof(double) * s * h);
-    half = size / 2;
+	half_x = size_x / 2;
+	half_y = size_y / 2;
 
+	kx_sum = ky_sum = 0;
+	for (i = 0; i < size_x; i++)
+		kx_sum += kx[i];
+	for (i = 0; i < size_y; i++)
+		ky_sum += ky[i];
 
+	/* TODO extrapolation. */
+
+	/* Vertical pass. */
     for (channel = 0; channel < MIN(3, n_chans); channel++) {
-        for (y = half; y < h - half; y++) {
-            for (x = half; x < s - half * n_chans; x += n_chans) {
+        for (y = half_y; y < h - half_y; y++) {
+            for (x = 0; x < s; x += n_chans) {
                 offset = y * s + x + channel;
-                p = ps + offset;
+                p = src + offset;
 
-                sum = 0.0;
-                /* Convolve image with convolution matrix c. */
-                for (yy = 0; yy < size; yy++) {
-                    for (xx = 0; xx < size; xx++) {
-                        g_off = yy * size + xx;
-                        p_off = (yy - half) * s + (xx - half) * n_chans;
+                sum = 0;
+				for (i = 0; i < size_y; i++)
+					sum += ky[i] * p[(i - half_y) * s];
 
-                        sum += g[g_off] * p[p_off];
-                    }
-                }
-
-                res[offset] = sum;
+                dst[offset] = (guchar) (sum / ky_sum);
             }
         }
     }
 
-    return res;
+	/* Horizontal pass. */
+    for (channel = 0; channel < MIN(3, n_chans); channel++) {
+        for (y = 0; y < h; y++) {
+            for (x = half_x * n_chans; x < s - half_x * n_chans; x += n_chans) {
+                offset = y * s + x + channel;
+                p = src + offset;
+
+                sum = 0;
+				for (i = 0; i < size_x; i++)
+					sum += kx[i] * p[(i - half_x) * n_chans];
+
+                dst[offset] = (guchar) (sum / kx_sum);
+            }
+        }
+    }
 }
