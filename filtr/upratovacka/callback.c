@@ -3,6 +3,7 @@
 
 #include <assert.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "callback.h"
 #include "filters.h"
@@ -38,6 +39,9 @@ extern pixbuf_data p_data;
 extern AppWidgets widgets;
 
 
+
+static char *get_file_extension(char *filename);
+static void save_image(const char *format);
 
 static void apply_edge_detect(int method);
 static void apply_gray_scale(int method);
@@ -191,9 +195,9 @@ static void apply_edge_detect(int method)
     olds = gdk_pixbuf_get_pixels(buf);
     news = gdk_pixbuf_get_pixels(new);
 
-	h = p_data.height;
-	s = p_data.rowstride;
-	n_chans = p_data.n_channels;
+    h = p_data.height;
+    s = p_data.rowstride;
+    n_chans = p_data.n_channels;
 
     switch (method) {
         case SOBEL:
@@ -290,8 +294,17 @@ on_menu_open_activate(GtkWidget *widget, gpointer data)
 
         buf = gdk_pixbuf_new_from_file(filename, &err);
         if (err == NULL) {
+            /* Clear stacks before opening new image. */
+            while (!IS_EMPTY(undo_stack, up, u_start))
+                gdk_pixbuf_unref(POP(undo_stack, up));
+            while (!IS_EMPTY(redo_stack, rp, r_start))
+                gdk_pixbuf_unref(POP(redo_stack, rp));
+
             PUSH(undo_stack, up, u_start, buf);
             UPDATE_IMAGE();
+
+            SET_SENSITIVITY_DO_BUTTON(undo, FALSE);
+            SET_SENSITIVITY_DO_BUTTON(redo, FALSE);
 
             p_data.colorspace = gdk_pixbuf_get_colorspace(buf);
             p_data.has_alpha = gdk_pixbuf_get_has_alpha(buf);
@@ -309,18 +322,58 @@ on_menu_open_activate(GtkWidget *widget, gpointer data)
 }
 
 
+
+static char *get_file_extension(char *filename)
+{
+    char *extension;
+
+    extension = filename + strlen(filename);
+    while (*--extension != '.')
+        if (extension <= filename)
+            return NULL;
+
+    /* Return extension without the dot. */
+    return extension + 1;
+}
+
+
+static void save_image(const char *format)
+{
+    GdkPixbuf *buf;
+    GError *err;
+
+    err = NULL;
+    if (!IS_EMPTY(undo_stack, up, u_start)) {
+        buf = PEEK(undo_stack, up);
+
+        gdk_pixbuf_save(buf, filename, format, &err, NULL);
+        if (err != NULL)
+            g_printerr("%s error saving image.\n", filename);
+    }
+}
+
+
 G_MODULE_EXPORT void
 on_menu_save_as_activate(GtkWidget *widget, gpointer data)
 {
     GtkResponseType response;
+    char *extension;
 
     response = gtk_dialog_run(GTK_DIALOG(widgets.filechooser_save_as));
     if (response == 1) {
         filename = gtk_file_chooser_get_filename(
                    GTK_FILE_CHOOSER(widgets.filechooser_save_as));
+        extension = get_file_extension(filename);
 
-        /* Reuse callback for saving */
-        on_menu_save_activate(NULL, NULL);
+        if (strcmp(extension, "png") == 0) {
+            save_image("png");
+        } else if (strcmp(extension, "jpg") == 0 || 
+                   strcmp(extension, "jpeg") == 0) {
+            save_image("jpeg");
+        } else {
+            save_image(image_format);
+        }
+
     }
 
     gtk_widget_hide(GTK_WIDGET(widgets.filechooser_save_as));
@@ -330,14 +383,5 @@ on_menu_save_as_activate(GtkWidget *widget, gpointer data)
 G_MODULE_EXPORT void
 on_menu_save_activate(GtkWidget *widget, gpointer data)
 {
-    GdkPixbuf *buf;
-    GError *err;
-
-    err = NULL;
-    /* TODO if not empty */
-    buf = PEEK(undo_stack, up);
-
-    gdk_pixbuf_save(buf, filename, image_format, &err, NULL);
-    if (err != NULL)
-        g_printerr("%s error saving image.\n", filename);
+    save_image(image_format);
 }

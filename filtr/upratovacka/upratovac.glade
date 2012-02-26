@@ -37,6 +37,7 @@
     <property name="can_focus">False</property>
     <property name="border_width">5</property>
     <property name="title" translatable="yes">Difference of Gaussians</property>
+    <property name="default_width">320</property>
     <property name="type_hint">dialog</property>
     <property name="has_resize_grip">False</property>
     <child internal-child="vbox">
@@ -155,6 +156,7 @@
           <packing>
             <property name="expand">True</property>
             <property name="fill">True</property>
+            <property name="padding">10</property>
             <property name="position">1</property>
           </packing>
         </child>
@@ -168,7 +170,7 @@
   <object class="GtkDialog" id="edge_detect_dialog">
     <property name="can_focus">False</property>
     <property name="border_width">5</property>
-    <property name="title" translatable="yes">Detekce hran</property>
+    <property name="title" translatable="yes">Edge detection</property>
     <property name="window_position">center-on-parent</property>
     <property name="default_width">320</property>
     <property name="default_height">260</property>
@@ -179,7 +181,6 @@
       <object class="GtkBox" id="dialog-vbox1">
         <property name="can_focus">False</property>
         <property name="orientation">vertical</property>
-        <property name="spacing">2</property>
         <child internal-child="action_area">
           <object class="GtkButtonBox" id="dialog-action_area1">
             <property name="can_focus">False</property>
@@ -271,7 +272,7 @@
   <object class="GtkFileChooserDialog" id="filechooser_open">
     <property name="can_focus">False</property>
     <property name="border_width">5</property>
-    <property name="title" translatable="yes">Otevřít</property>
+    <property name="title" translatable="yes">Open</property>
     <property name="window_position">center-on-parent</property>
     <property name="destroy_with_parent">True</property>
     <property name="type_hint">dialog</property>
@@ -336,7 +337,7 @@
   <object class="GtkFileChooserDialog" id="filechooser_save_as">
     <property name="can_focus">False</property>
     <property name="border_width">5</property>
-    <property name="title" translatable="yes">Uložit jako</property>
+    <property name="title" translatable="yes">Save as</property>
     <property name="destroy_with_parent">True</property>
     <property name="type_hint">dialog</property>
     <property name="has_resize_grip">False</property>
@@ -390,7 +391,32 @@
           </packing>
         </child>
         <child>
-          <placeholder/>
+          <object class="GtkExpander" id="file_type_expander">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <child>
+              <object class="GtkTreeView" id="treeview1">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="model">image_types_store</property>
+                <child internal-child="selection">
+                  <object class="GtkTreeSelection" id="image_format_selection"/>
+                </child>
+              </object>
+            </child>
+            <child type="label">
+              <object class="GtkLabel" id="label3">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">Image format</property>
+              </object>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">True</property>
+            <property name="fill">True</property>
+            <property name="position">2</property>
+          </packing>
         </child>
       </object>
     </child>
@@ -402,7 +428,10 @@
   <object class="GtkDialog" id="gaussian_blur_dialog">
     <property name="can_focus">False</property>
     <property name="border_width">5</property>
+    <property name="title" translatable="yes">Gaussian blur</property>
     <property name="window_position">center-on-parent</property>
+    <property name="default_width">320</property>
+    <property name="default_height">260</property>
     <property name="destroy_with_parent">True</property>
     <property name="type_hint">dialog</property>
     <property name="has_resize_grip">False</property>
@@ -410,7 +439,7 @@
       <object class="GtkBox" id="dialog-vbox5">
         <property name="can_focus">False</property>
         <property name="orientation">vertical</property>
-        <property name="spacing">2</property>
+        <property name="spacing">20</property>
         <child internal-child="action_area">
           <object class="GtkButtonBox" id="dialog-action_area5">
             <property name="can_focus">False</property>
@@ -454,43 +483,79 @@
           </packing>
         </child>
         <child>
-          <object class="GtkBox" id="box3">
+          <object class="GtkGrid" id="grid2">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="hexpand">True</property>
-            <property name="vexpand">True</property>
-            <property name="orientation">vertical</property>
+            <property name="row_homogeneous">True</property>
+            <property name="n_rows">2</property>
+            <property name="n_columns">2</property>
+            <child>
+              <object class="GtkLabel" id="label1">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">Horizontal 
+variance</property>
+              </object>
+              <packing>
+                <property name="left_attach">0</property>
+                <property name="top_attach">0</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="label2">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">Vertical 
+Variance</property>
+              </object>
+              <packing>
+                <property name="left_attach">0</property>
+                <property name="top_attach">1</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
+              </packing>
+            </child>
             <child>
               <object class="GtkSpinButton" id="gaussian_blur_horizontal">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can_focus">True</property>
+                <property name="hexpand">True</property>
+                <property name="invisible_char">•</property>
                 <property name="adjustment">gaussian_blur_horizontal_adjustment</property>
+                <property name="climb_rate">1</property>
                 <property name="digits">1</property>
               </object>
               <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">0</property>
+                <property name="left_attach">1</property>
+                <property name="top_attach">0</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
               <object class="GtkSpinButton" id="gaussian_blur_vertical">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="progress_pulse_step">0.5</property>
+                <property name="can_focus">True</property>
+                <property name="hexpand">True</property>
+                <property name="invisible_char">•</property>
                 <property name="adjustment">gaussian_blur_vertical_adjustment</property>
+                <property name="climb_rate">1</property>
                 <property name="digits">1</property>
               </object>
               <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">1</property>
+                <property name="left_attach">1</property>
+                <property name="top_attach">1</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
           </object>
           <packing>
-            <property name="expand">False</property>
+            <property name="expand">True</property>
             <property name="fill">True</property>
+            <property name="padding">10</property>
             <property name="position">1</property>
           </packing>
         </child>
@@ -503,12 +568,14 @@
   </object>
   <object class="GtkAdjustment" id="gaussian_blur_horizontal_adjustment">
     <property name="upper">10</property>
-    <property name="step_increment">0.5</property>
+    <property name="value">1</property>
+    <property name="step_increment">1</property>
     <property name="page_increment">10</property>
   </object>
   <object class="GtkAdjustment" id="gaussian_blur_vertical_adjustment">
     <property name="upper">10</property>
-    <property name="step_increment">0.5</property>
+    <property name="value">1</property>
+    <property name="step_increment">1</property>
     <property name="page_increment">10</property>
   </object>
   <object class="GtkDialog" id="gray_scale_dialog">
@@ -516,6 +583,7 @@
     <property name="border_width">5</property>
     <property name="title" translatable="yes">Odstíny šedi</property>
     <property name="window_position">center-on-parent</property>
+    <property name="default_width">320</property>
     <property name="type_hint">dialog</property>
     <property name="has_resize_grip">False</property>
     <child internal-child="vbox">
@@ -604,6 +672,90 @@
         <col id="0" translatable="yes">Average</col>
       </row>
     </data>
+  </object>
+  <object class="GtkListStore" id="image_types_store">
+    <columns>
+      <!-- column-name Image format -->
+      <column type="gchararray"/>
+      <!-- column-name Extension -->
+      <column type="gchararray"/>
+    </columns>
+    <data>
+      <row>
+        <col id="0">Portable Network Graphics</col>
+        <col id="1" translatable="yes">png</col>
+      </row>
+      <row>
+        <col id="0">Joint Photographic Experts Group</col>
+        <col id="1" translatable="yes">jpeg</col>
+      </row>
+    </data>
+  </object>
+  <object class="GtkDialog" id="png_dialog">
+    <property name="can_focus">False</property>
+    <property name="border_width">5</property>
+    <property name="window_position">center-on-parent</property>
+    <property name="default_width">320</property>
+    <property name="default_height">260</property>
+    <property name="destroy_with_parent">True</property>
+    <property name="type_hint">dialog</property>
+    <property name="has_resize_grip">False</property>
+    <child internal-child="vbox">
+      <object class="GtkBox" id="dialog-vbox6">
+        <property name="can_focus">False</property>
+        <property name="orientation">vertical</property>
+        <property name="spacing">2</property>
+        <child internal-child="action_area">
+          <object class="GtkButtonBox" id="dialog-action_area6">
+            <property name="can_focus">False</property>
+            <property name="layout_style">end</property>
+            <child>
+              <object class="GtkButton" id="button14">
+                <property name="label">gtk-cancel</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="use_action_appearance">False</property>
+                <property name="use_stock">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="button13">
+                <property name="label">gtk-ok</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="use_action_appearance">False</property>
+                <property name="use_stock">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="pack_type">end</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <placeholder/>
+        </child>
+      </object>
+    </child>
+    <action-widgets>
+      <action-widget response="0">button14</action-widget>
+      <action-widget response="1">button13</action-widget>
+    </action-widgets>
   </object>
   <object class="GtkWindow" id="window">
     <property name="can_focus">False</property>

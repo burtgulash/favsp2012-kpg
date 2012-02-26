@@ -46,8 +46,8 @@ typedef struct {
     int bits_per_sample;
     int width;
     int height;
-	int rowstride;
-	int n_channels;
+    int rowstride;
+    int n_channels;
 } pixbuf_data;
 
 typedef struct {
