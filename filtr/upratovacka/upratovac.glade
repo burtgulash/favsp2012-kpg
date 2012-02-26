@@ -97,11 +97,11 @@
             <property name="n_rows">2</property>
             <property name="n_columns">2</property>
             <child>
-              <object class="GtkScale" id="scale1">
+              <object class="GtkScale" id="difference_of_gaussians_first">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="hexpand">True</property>
-                <property name="fill_level">100</property>
+                <property name="adjustment">difference_of_gaussians_first_adjustment</property>
                 <property name="round_digits">1</property>
               </object>
               <packing>
@@ -112,11 +112,11 @@
               </packing>
             </child>
             <child>
-              <object class="GtkScale" id="scale2">
+              <object class="GtkScale" id="difference_of_gaussians_second">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="hexpand">True</property>
-                <property name="fill_level">100</property>
+                <property name="adjustment">difference_of_gaussians_second_adjustment</property>
                 <property name="round_digits">1</property>
               </object>
               <packing>
@@ -130,7 +130,8 @@
               <object class="GtkLabel" id="gaussian_first">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="label" translatable="yes">First</property>
+                <property name="label" translatable="yes">Variance 
+of first </property>
               </object>
               <packing>
                 <property name="left_attach">0</property>
@@ -143,7 +144,8 @@
               <object class="GtkLabel" id="gaussian_second">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="label" translatable="yes">Second</property>
+                <property name="label" translatable="yes">Variance 
+of second</property>
               </object>
               <packing>
                 <property name="left_attach">0</property>
@@ -166,6 +168,17 @@
       <action-widget response="0">button10</action-widget>
       <action-widget response="1">button9</action-widget>
     </action-widgets>
+  </object>
+  <object class="GtkAdjustment" id="difference_of_gaussians_first_adjustment">
+    <property name="upper">10</property>
+    <property name="value">1</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+  </object>
+  <object class="GtkAdjustment" id="difference_of_gaussians_second_adjustment">
+    <property name="upper">10</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
   </object>
   <object class="GtkDialog" id="edge_detect_dialog">
     <property name="can_focus">False</property>
@@ -391,32 +404,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkExpander" id="file_type_expander">
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <child>
-              <object class="GtkTreeView" id="treeview1">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="model">image_types_store</property>
-                <child internal-child="selection">
-                  <object class="GtkTreeSelection" id="image_format_selection"/>
-                </child>
-              </object>
-            </child>
-            <child type="label">
-              <object class="GtkLabel" id="label3">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="label" translatable="yes">Image format</property>
-              </object>
-            </child>
-          </object>
-          <packing>
-            <property name="expand">True</property>
-            <property name="fill">True</property>
-            <property name="position">2</property>
-          </packing>
+          <placeholder/>
         </child>
       </object>
     </child>
@@ -675,7 +663,7 @@ Variance</property>
   </object>
   <object class="GtkListStore" id="image_types_store">
     <columns>
-      <!-- column-name Image format -->
+      <!-- column-name Image -->
       <column type="gchararray"/>
       <!-- column-name Extension -->
       <column type="gchararray"/>
@@ -690,72 +678,6 @@ Variance</property>
         <col id="1" translatable="yes">jpeg</col>
       </row>
     </data>
-  </object>
-  <object class="GtkDialog" id="png_dialog">
-    <property name="can_focus">False</property>
-    <property name="border_width">5</property>
-    <property name="window_position">center-on-parent</property>
-    <property name="default_width">320</property>
-    <property name="default_height">260</property>
-    <property name="destroy_with_parent">True</property>
-    <property name="type_hint">dialog</property>
-    <property name="has_resize_grip">False</property>
-    <child internal-child="vbox">
-      <object class="GtkBox" id="dialog-vbox6">
-        <property name="can_focus">False</property>
-        <property name="orientation">vertical</property>
-        <property name="spacing">2</property>
-        <child internal-child="action_area">
-          <object class="GtkButtonBox" id="dialog-action_area6">
-            <property name="can_focus">False</property>
-            <property name="layout_style">end</property>
-            <child>
-              <object class="GtkButton" id="button14">
-                <property name="label">gtk-cancel</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
-                <property name="use_stock">True</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkButton" id="button13">
-                <property name="label">gtk-ok</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
-                <property name="use_stock">True</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="pack_type">end</property>
-            <property name="position">0</property>
-          </packing>
-        </child>
-        <child>
-          <placeholder/>
-        </child>
-      </object>
-    </child>
-    <action-widgets>
-      <action-widget response="0">button14</action-widget>
-      <action-widget response="1">button13</action-widget>
-    </action-widgets>
   </object>
   <object class="GtkWindow" id="window">
     <property name="can_focus">False</property>
@@ -1004,8 +926,8 @@ Variance</property>
                 <property name="label" translatable="yes">Undo</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-undo</property>
-                <accelerator key="z" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
                 <accelerator key="u" signal="clicked"/>
+                <accelerator key="z" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
                 <signal name="clicked" handler="on_undo_clicked" swapped="no"/>
               </object>
               <packing>
@@ -1022,8 +944,8 @@ Variance</property>
                 <property name="label" translatable="yes">Redo</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-redo</property>
-                <accelerator key="y" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
                 <accelerator key="r" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
+                <accelerator key="y" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
                 <signal name="clicked" handler="on_redo_clicked" swapped="no"/>
               </object>
               <packing>

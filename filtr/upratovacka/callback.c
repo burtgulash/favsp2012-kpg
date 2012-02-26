@@ -40,9 +40,6 @@ extern AppWidgets widgets;
 
 
 
-static char *get_file_extension(char *filename);
-static void save_image(const char *format);
-
 static void apply_edge_detect(int method);
 static void apply_gray_scale(int method);
 static void apply_difference_of_gaussians(double first, double second);
@@ -104,50 +101,39 @@ static void apply_gaussian_blur(double horizontal, double vertical)
 {
     GdkPixbuf *buf, *new;
     guchar *olds, *news;
-    unsigned *kernel_x, *kernel_y;
-    unsigned size_x, size_y;
 
     buf = PEEK(undo_stack, up);
     new = gdk_pixbuf_copy(buf);
     olds = gdk_pixbuf_get_pixels(buf);
     news = gdk_pixbuf_get_pixels(new);
 
-    /* Compute size of kernel matrix according to sigmas. */
-    size_x = 8 * (unsigned) horizontal + 8;
-    size_y = 8 * (unsigned) vertical + 8;
-
-    /* Make size odd number. */
-    size_x += size_x & 1;
-    size_x -= 1;
-    size_y += size_y & 1;
-    size_y -= 1;
-
-
-    /* Ensure that sigma is sufficiently large. */
-    horizontal = MAX(horizontal, .02);
-    vertical = MAX(vertical, .02);
-
-    kernel_x = g_malloc0(sizeof(unsigned) * size_x);
-    kernel_y = g_malloc0(sizeof(unsigned) * size_y);
-
-    gaussian_kernel(horizontal, size_x, kernel_x);
-    gaussian_kernel(vertical, size_y, kernel_y);
-
-    gaussian_blur(size_x, size_y, kernel_x, kernel_y,
-                  news, olds,
-                  p_data.height,
-                  p_data.rowstride,
-                  p_data.n_channels);
-
-    g_free(kernel_x);
-    g_free(kernel_y);
+    gaussian_blur(horizontal, vertical, news, olds,
+                          p_data.height,
+                          p_data.rowstride,
+                          p_data.n_channels);
 
     UPDATE_EDITED_IMAGE(new);
 }
 
 
-static void apply_difference_of_gaussians(double first, double second)
+static void apply_difference_of_gaussians(double sigma_first,
+                                          double sigma_second)
 {
+    GdkPixbuf *buf, *new;
+    guchar *olds, *news;
+
+    buf = PEEK(undo_stack, up);
+    new = gdk_pixbuf_copy(buf);
+    olds = gdk_pixbuf_get_pixels(buf);
+    news = gdk_pixbuf_get_pixels(new);
+
+    difference_of_gaussians(sigma_first, sigma_second,
+                            news, olds,
+                            p_data.height,
+                            p_data.rowstride,
+                            p_data.n_channels);
+
+    UPDATE_EDITED_IMAGE(new);
 }
 
 
@@ -322,58 +308,16 @@ on_menu_open_activate(GtkWidget *widget, gpointer data)
 }
 
 
-
-static char *get_file_extension(char *filename)
-{
-    char *extension;
-
-    extension = filename + strlen(filename);
-    while (*--extension != '.')
-        if (extension <= filename)
-            return NULL;
-
-    /* Return extension without the dot. */
-    return extension + 1;
-}
-
-
-static void save_image(const char *format)
-{
-    GdkPixbuf *buf;
-    GError *err;
-
-    err = NULL;
-    if (!IS_EMPTY(undo_stack, up, u_start)) {
-        buf = PEEK(undo_stack, up);
-
-        gdk_pixbuf_save(buf, filename, format, &err, NULL);
-        if (err != NULL)
-            g_printerr("%s error saving image.\n", filename);
-    }
-}
-
-
 G_MODULE_EXPORT void
 on_menu_save_as_activate(GtkWidget *widget, gpointer data)
 {
     GtkResponseType response;
-    char *extension;
 
     response = gtk_dialog_run(GTK_DIALOG(widgets.filechooser_save_as));
     if (response == 1) {
         filename = gtk_file_chooser_get_filename(
                    GTK_FILE_CHOOSER(widgets.filechooser_save_as));
-        extension = get_file_extension(filename);
-
-        if (strcmp(extension, "png") == 0) {
-            save_image("png");
-        } else if (strcmp(extension, "jpg") == 0 || 
-                   strcmp(extension, "jpeg") == 0) {
-            save_image("jpeg");
-        } else {
-            save_image(image_format);
-        }
-
+        on_menu_save_activate(NULL, NULL);
     }
 
     gtk_widget_hide(GTK_WIDGET(widgets.filechooser_save_as));
@@ -383,5 +327,15 @@ on_menu_save_as_activate(GtkWidget *widget, gpointer data)
 G_MODULE_EXPORT void
 on_menu_save_activate(GtkWidget *widget, gpointer data)
 {
-    save_image(image_format);
+    GdkPixbuf *buf;
+    GError *err;
+
+    err = NULL;
+    if (!IS_EMPTY(undo_stack, up, u_start)) {
+        buf = PEEK(undo_stack, up);
+
+        gdk_pixbuf_save(buf, filename, image_format, &err, NULL);
+        if (err != NULL)
+            g_printerr("%s error saving image.\n", filename);
+    }
 }

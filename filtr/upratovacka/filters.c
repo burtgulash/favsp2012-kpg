@@ -1,12 +1,29 @@
-#include <glib.h>
-
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "filters.h"
 
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
 
-void gray_scale_luminance(guchar ps[], int h, int s, int n_chans)
+
+static void edge_detect(int c_size, int cx[], int cy[],
+                        unsigned char dst[], unsigned char src[],
+                        int h, int s, int n_chans);
+
+static void gaussian_create_kernel(double sigma, int size, unsigned k[]);
+static void gaussian_apply_kernel(int size_x, int size_y,
+                   unsigned kx[], unsigned ky[],
+                   unsigned char dst[], unsigned char src[],
+                   int h, int s, int n_chans);
+
+
+/*
+ * Gray scale conversion functions.
+ */
+
+void gray_scale_luminance(unsigned char ps[], int h, int s, int n_chans)
 {
     int x, y, channel, offset;
     double sum;
@@ -21,14 +38,14 @@ void gray_scale_luminance(guchar ps[], int h, int s, int n_chans)
                     + .0722 * ps[offset + 2];
 
                 for (channel = 0; channel < 3; channel++)
-                    ps[offset + channel] = (guchar) sum;
+                    ps[offset + channel] = (unsigned char) sum;
             }
         }
     }
 }
 
 
-void gray_scale_avg(guchar ps[], int h, int s, int n_chans)
+void gray_scale_avg(unsigned char ps[], int h, int s, int n_chans)
 {
     int x, y, channel, offset;
     int sum;
@@ -41,14 +58,20 @@ void gray_scale_avg(guchar ps[], int h, int s, int n_chans)
                 sum = (ps[offset] + ps[offset + 1] + ps[offset + 2]) / 3;
 
                 for (channel = 0; channel < MIN(3, n_chans); channel++)
-                    ps[offset + channel] = (guchar) sum;
+                    ps[offset + channel] = (unsigned char) sum;
             }
         }
     }
 }
 
 
-void sobel(guchar news[], guchar olds[], int h, int s, int n_chans)
+
+/*
+ * Edge detection functions.
+ */
+
+void sobel(unsigned char news[], unsigned char olds[],
+           int h, int s, int n_chans)
 {
     int sobel_x[] = {-1, 0, 1,
                      -2, 0, 2,
@@ -60,7 +83,8 @@ void sobel(guchar news[], guchar olds[], int h, int s, int n_chans)
 }
 
 
-void prewitt(guchar news[], guchar olds[], int h, int s, int n_chans)
+void prewitt(unsigned char news[], unsigned char olds[],
+             int h, int s, int n_chans)
 {
     int prewitt_x[] = {-1, 0, 1,
                      -1, 0, 1,
@@ -73,7 +97,8 @@ void prewitt(guchar news[], guchar olds[], int h, int s, int n_chans)
 }
 
 
-void roberts_cross(guchar news[], guchar olds[], int h, int s, int n_chans)
+void roberts_cross(unsigned char news[], unsigned char olds[],
+                   int h, int s, int n_chans)
 {
     int rc_x[] = {1, 0,
                   0, -1};
@@ -84,7 +109,8 @@ void roberts_cross(guchar news[], guchar olds[], int h, int s, int n_chans)
 }
 
 
-void laplace(guchar news[], guchar olds[], int h, int s, int n_chans)
+void laplace(unsigned char news[], unsigned char olds[],
+             int h, int s, int n_chans)
 {
     int laplace[] = {-1, -1, -1,
                      -1, +8, -1,
@@ -94,8 +120,34 @@ void laplace(guchar news[], guchar olds[], int h, int s, int n_chans)
 }
 
 
-void edge_detect(int c_size, int cx[], int cy[],
-                 guchar dst[], guchar src[], int h, int s, int n_chans)
+void difference_of_gaussians(double sigma_first, double sigma_second,
+                             unsigned char dst[], unsigned char src[],
+                             int h, int s, int n_chans)
+{
+    int i, size;
+    unsigned char *first, *second;
+
+
+    size = h * s;
+    first = (unsigned char*) malloc(size * sizeof(unsigned char*));
+    second = (unsigned char*) malloc(size * sizeof(unsigned char*));
+    memcpy(first, src, size);
+    memcpy(second, src, size);
+
+    gaussian_blur(sigma_first, sigma_first, first, first, h, s, n_chans);
+    gaussian_blur(sigma_second, sigma_second, second, second, h, s, n_chans);
+
+    for (i = 0; i < size; i++ )
+        dst[i] = MIN(MAX(first[i] - second[i], 0), 0xFF);
+
+    free(first);
+    free(second);
+}
+
+
+static void edge_detect(int c_size, int cx[], int cy[],
+                        unsigned char dst[], unsigned char src[],
+                        int h, int s, int n_chans)
 {
     int c_half;
     int channel, x, y;
@@ -104,9 +156,9 @@ void edge_detect(int c_size, int cx[], int cy[],
     int sumx, sumy;
     int min, max;
     int *tmp, tmp_value;
-    guchar *p;
+    unsigned char *p;
 
-    tmp = g_malloc(sizeof(int) * h * s);
+    tmp = (int*) malloc(h * s * sizeof(int));
     c_half = c_size / 2;
 
 
@@ -129,7 +181,7 @@ void edge_detect(int c_size, int cx[], int cy[],
                         sumy += cy[c_off] * p[p_off];
                     }
                 }
-                
+
                 tmp_value = (int) sqrt((double) (sumx * sumx + sumy * sumy));
                 tmp[offset] = tmp_value;
 
@@ -140,22 +192,27 @@ void edge_detect(int c_size, int cx[], int cy[],
             }
         }
 
+        /* Histogram normalization. */
         for (y = 0; y < h; y++) {
             for (x = 0; x < s; x += n_chans) {
                 offset = y * s + x + channel;
 
-                dst[offset] = (guchar) 
+                dst[offset] = (unsigned char)
                               (0xFF * (tmp[offset] - min) / (max - min));
             }
         }
     }
 
-    g_free(tmp);
+    free(tmp);
 }
 
 
 
-void gaussian_kernel(double sigma, int size, unsigned k[])
+/*
+ * Gaussian blur functions.
+ */
+
+static void gaussian_create_kernel(double sigma, int size, unsigned k[])
 {
     int i, half;
 
@@ -170,17 +227,19 @@ void gaussian_kernel(double sigma, int size, unsigned k[])
 }
 
 
-void gaussian_blur(int size_x, int size_y, unsigned kx[], unsigned ky[],
-                   guchar dst[], guchar src[], int h, int s, int n_chans)
+static void gaussian_apply_kernel(int size_x, int size_y,
+                   unsigned kx[], unsigned ky[],
+                   unsigned char dst[], unsigned char src[],
+                   int h, int s, int n_chans)
 {
-    int channel, x, y, i;
-    int chans;
+    int x, y, ys, i;
+    int channel, chans;
     int offset;
     int half_x, half_y;
     unsigned sum, kx_sum, ky_sum;
-    guchar *tmp;
+    unsigned char *tmp;
 
-    tmp = (guchar*) g_malloc0(sizeof(guchar) * h * s);
+    tmp = (unsigned char*) malloc(h * s * sizeof(unsigned char));
     chans = MIN(3, n_chans);
 
     half_x = size_x / 2;
@@ -195,17 +254,18 @@ void gaussian_blur(int size_x, int size_y, unsigned kx[], unsigned ky[],
     /* Horizontal pass. */
     for (channel = 0; channel < chans; channel++) {
         for (y = 0; y < h; y++) {
+            ys = y * s;
             for (x = 0; x < s; x += n_chans) {
-                offset = y * s + x + channel;
+                offset = ys + x + channel;
 
                 sum = 0;
                 for (i = 0; i < size_x; i++)
-                    sum += kx[i] * src[y * s + channel
-                                             + MAX(0,
-                                               MIN(s - n_chans,
-                                               x + (i - half_x) * n_chans))];
+                    sum += kx[i] * src[ys + channel
+                                          + MAX(0,
+                                            MIN(s - n_chans,
+                                                x + (i - half_x) * n_chans))];
 
-                tmp[offset] = (guchar) (sum / kx_sum);
+                tmp[offset] = (unsigned char) (sum / kx_sum);
             }
         }
     }
@@ -213,8 +273,9 @@ void gaussian_blur(int size_x, int size_y, unsigned kx[], unsigned ky[],
     /* Vertical pass. */
     for (channel = 0; channel < chans; channel++) {
         for (y = 0; y < h; y++) {
+            ys = y * s;
             for (x = 0; x < s; x += n_chans) {
-                offset = y * s + x + channel;
+                offset = ys + x + channel;
 
                 sum = 0;
                 for (i = 0; i < size_y; i++)
@@ -223,10 +284,46 @@ void gaussian_blur(int size_x, int size_y, unsigned kx[], unsigned ky[],
                                                MIN(h - 1,
                                                    y + i - half_y))];
 
-                dst[offset] = (guchar) (sum / ky_sum);
+                dst[offset] = (unsigned char) (sum / ky_sum);
             }
         }
     }
 
-    g_free(tmp);
+    free(tmp);
+}
+
+
+void gaussian_blur(double sigma_x, double sigma_y,
+                   unsigned char dst[], unsigned char src[],
+                   int h, int s, int n_chans)
+{
+    unsigned size_x, size_y;
+    unsigned *kernel_x, *kernel_y;
+
+    /* Compute size of kernel matrix according to sigmas. */
+    size_x = 8 * (unsigned) sigma_x + 8;
+    size_y = 8 * (unsigned) sigma_y + 8;
+
+    /* Make size odd number. */
+    size_x += size_x & 1;
+    size_x -= 1;
+    size_y += size_y & 1;
+    size_y -= 1;
+
+
+    /* Ensure that sigma is reasonably large. */
+    sigma_x = MIN(MAX(sigma_x, .02), 10.0);
+    sigma_y = MIN(MAX(sigma_y, .02), 10.0);
+
+    kernel_x = calloc(size_x, sizeof(unsigned));
+    kernel_y = calloc(size_y, sizeof(unsigned));
+
+    gaussian_create_kernel(sigma_x, size_x, kernel_x);
+    gaussian_create_kernel(sigma_y, size_y, kernel_y);
+
+    gaussian_apply_kernel(size_x, size_y, kernel_x, kernel_y,
+                          dst, src, h, s, n_chans);
+
+    free(kernel_x);
+    free(kernel_y);
 }
