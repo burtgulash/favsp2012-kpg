@@ -70,7 +70,7 @@ void gray_scale_avg(unsigned char ps[], int h, int s, int n_chans)
  * Edge detection functions.
  */
 
-void sobel(unsigned char news[], unsigned char olds[],
+void sobel(unsigned char dst[], unsigned char src[],
            int h, int s, int n_chans)
 {
     int sobel_x[] = {-1, 0, 1,
@@ -79,11 +79,11 @@ void sobel(unsigned char news[], unsigned char olds[],
     int sobel_y[] = {-1,-2,-1,
                       0, 0, 0,
                       1, 2, 1};
-    edge_detect(3, sobel_x, sobel_y, news, olds, h, s, n_chans);
+    edge_detect(3, sobel_x, sobel_y, dst, src, h, s, n_chans);
 }
 
 
-void prewitt(unsigned char news[], unsigned char olds[],
+void prewitt(unsigned char dst[], unsigned char src[],
              int h, int s, int n_chans)
 {
     int prewitt_x[] = {-1, 0, 1,
@@ -93,11 +93,11 @@ void prewitt(unsigned char news[], unsigned char olds[],
                       0, 0, 0,
                       1, 1, 1};
 
-    edge_detect(3, prewitt_x, prewitt_y, news, olds, h, s, n_chans);
+    edge_detect(3, prewitt_x, prewitt_y, dst, src, h, s, n_chans);
 }
 
 
-void roberts_cross(unsigned char news[], unsigned char olds[],
+void roberts_cross(unsigned char dst[], unsigned char src[],
                    int h, int s, int n_chans)
 {
     int rc_x[] = {1, 0,
@@ -105,50 +105,7 @@ void roberts_cross(unsigned char news[], unsigned char olds[],
     int rc_y[] = {0, 1,
                  -1, 0};
 
-    edge_detect(2, rc_x, rc_y, news, olds, h, s, n_chans);
-}
-
-
-void laplace(unsigned char news[], unsigned char olds[],
-             int h, int s, int n_chans)
-{
-    int laplace[] = {-1, -1, -1,
-                     -1, +8, -1,
-                     -1, -1, -1};
-
-    edge_detect(3, laplace, laplace, news, olds, h, s, n_chans);
-}
-
-
-void difference_of_gaussians(double sigma_first, double sigma_second,
-                             unsigned char dst[], unsigned char src[],
-                             int h, int s, int n_chans)
-{
-    int x, y, channel, offset, size;
-    unsigned char *first, *second;
-
-
-    size = h * s;
-    first = (unsigned char*) malloc(size * sizeof(unsigned char*));
-    second = (unsigned char*) malloc(size * sizeof(unsigned char*));
-    memcpy(first, src, size);
-    memcpy(second, src, size);
-
-    gaussian_blur(sigma_first, sigma_first, first, first, h, s, n_chans);
-    gaussian_blur(sigma_second, sigma_second, second, second, h, s, n_chans);
-
-    for (channel = 0; channel < MIN(3, n_chans); channel++) {
-        for (y = 0; y < h; y++) {
-            for (x = 0; x < s; x++) {
-                offset = y * s + x + channel;
-
-                dst[offset] = MIN(MAX(first[offset] - second[offset], 0), 0xFF);
-            }
-        }
-    }
-
-    free(first);
-    free(second);
+    edge_detect(2, rc_x, rc_y, dst, src, h, s, n_chans);
 }
 
 
@@ -165,13 +122,13 @@ static void edge_detect(int c_size, int cx[], int cy[],
     int *tmp, tmp_value;
     unsigned char *p;
 
-    tmp = (int*) malloc(h * s * sizeof(int));
+    tmp = (int*) calloc(h * s, sizeof(int));
     c_half = c_size / 2;
 
 
     for (channel = 0; channel < MIN(3, n_chans); channel++) {
         min = 0x0;
-        max = 0xFF;
+        max = 0x1;
 
         for (y = c_half; y < h - c_half; y++) {
             for (x = c_half * n_chans; x < s - c_half * n_chans; x += n_chans) {
@@ -211,6 +168,76 @@ static void edge_detect(int c_size, int cx[], int cy[],
     }
 
     free(tmp);
+}
+
+
+/* TODO MEDIAN FILTER */
+void laplace(unsigned char dst[], unsigned char src[],
+             int h, int s, int n_chans)
+{
+    int x, y, channel, offset;
+    int xx, yy;
+    int c_off, p_off;
+    int sum;
+    unsigned char *p;
+    int laplace[] = {-1, -1, -1,
+                     -1, +8, -1,
+                     -1, -1, -1};
+
+
+    for (channel = 0; channel < MIN(3, n_chans); channel++) {
+        for (y = 1; y < h - 1; y++) {
+            for (x = n_chans; x < s - n_chans; x += n_chans) {
+                offset = y * s + x + channel;
+                p = src + offset;
+
+                sum = 0;
+                for (yy = 0; yy < 3; yy++) {
+                    for (xx = 0; xx < 3; xx++) {
+                        c_off = yy * 3 + xx;
+                        p_off = (yy - 1) * s + (xx - 1) * n_chans;
+
+                        sum += laplace[c_off] * p[p_off];
+                    }
+                }
+
+                sum = MAX(0, sum);
+                dst[offset] = sum / 8;
+            }
+        }
+    }
+}
+
+
+void difference_of_gaussians(double sigma_first, double sigma_second,
+                             unsigned char dst[], unsigned char src[],
+                             int h, int s, int n_chans)
+{
+    int x, y, channel, offset, size;
+    unsigned char *first, *second;
+
+
+    size = h * s;
+    first = (unsigned char*) malloc(size * sizeof(unsigned char*));
+    second = (unsigned char*) malloc(size * sizeof(unsigned char*));
+    memcpy(first, src, size);
+    memcpy(second, src, size);
+
+    gaussian_blur(sigma_first, sigma_first, first, first, h, s, n_chans);
+    gaussian_blur(sigma_second, sigma_second, second, second, h, s, n_chans);
+
+    for (channel = 0; channel < MIN(3, n_chans); channel++) {
+        for (y = 0; y < h; y++) {
+            for (x = 0; x < s; x += n_chans) {
+                offset = y * s + x + channel;
+
+                dst[offset] = MIN(MAX(first[offset] - second[offset], 0), 0xFF);
+            }
+        }
+    }
+
+    free(first);
+    free(second);
 }
 
 
@@ -344,14 +371,15 @@ void sharpen(double sigma, unsigned char* dst, unsigned char *src,
 {
     int x, y, channel, offset;
 
-    difference_of_gaussians(sigma, sigma, dst, src, h, s, n_chans);
+
+    difference_of_gaussians(sigma, 0, dst, src, h, s, n_chans);
 
     for (channel = 0; channel < MIN(3, n_chans); channel++) {
         for (y = 0; y < h; y++) {
-            for (x = 0; x < s; x++) {
+            for (x = 0; x < s; x += n_chans) {
                 offset = y * s + x + channel;
 
-                dst[offset] = MIN(MAX(dst[offset] + src[offset], 0x0), 0xFF);
+                dst[offset] = MAX(0, src[offset] - dst[offset]);
             }
         }
     }
