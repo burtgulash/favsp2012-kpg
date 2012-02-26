@@ -75,6 +75,9 @@ typedef struct {
     GtkWidget *gaussian_blur_dialog;
     GtkWidget *gaussian_blur_horizontal;
     GtkWidget *gaussian_blur_vertical;
+
+    GtkWidget *sharpen_dialog;
+    GtkWidget *sharpen_amount;
 } AppWidgets;
 
 #endif /* !GLOB_H */

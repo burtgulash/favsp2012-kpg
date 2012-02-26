@@ -124,7 +124,7 @@ void difference_of_gaussians(double sigma_first, double sigma_second,
                              unsigned char dst[], unsigned char src[],
                              int h, int s, int n_chans)
 {
-    int i, size;
+    int x, y, channel, offset, size;
     unsigned char *first, *second;
 
 
@@ -137,8 +137,15 @@ void difference_of_gaussians(double sigma_first, double sigma_second,
     gaussian_blur(sigma_first, sigma_first, first, first, h, s, n_chans);
     gaussian_blur(sigma_second, sigma_second, second, second, h, s, n_chans);
 
-    for (i = 0; i < size; i++ )
-        dst[i] = MIN(MAX(first[i] - second[i], 0), 0xFF);
+    for (channel = 0; channel < MIN(3, n_chans); channel++) {
+        for (y = 0; y < h; y++) {
+            for (x = 0; x < s; x++) {
+                offset = y * s + x + channel;
+
+                dst[offset] = MIN(MAX(first[offset] - second[offset], 0), 0xFF);
+            }
+        }
+    }
 
     free(first);
     free(second);
@@ -326,4 +333,26 @@ void gaussian_blur(double sigma_x, double sigma_y,
 
     free(kernel_x);
     free(kernel_y);
+}
+
+
+/*
+ * Sharpen.
+ */
+void sharpen(double sigma, unsigned char* dst, unsigned char *src,
+             int h, int s, int n_chans)
+{
+    int x, y, channel, offset;
+
+    difference_of_gaussians(sigma, sigma, dst, src, h, s, n_chans);
+
+    for (channel = 0; channel < MIN(3, n_chans); channel++) {
+        for (y = 0; y < h; y++) {
+            for (x = 0; x < s; x++) {
+                offset = y * s + x + channel;
+
+                dst[offset] = MIN(MAX(dst[offset] + src[offset], 0x0), 0xFF);
+            }
+        }
+    }
 }

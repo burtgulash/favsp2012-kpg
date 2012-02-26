@@ -26,4 +26,10 @@ void gaussian_blur(double sigma_x, double sigma_y,
                    unsigned char dst[], unsigned char src[],
                    int h, int s, int n_chans);
 
+
+/* Sharpen. */
+void sharpen(double sigma, unsigned char* dst, unsigned char *src,
+             int h, int s, int n_chans);
+
+
 #endif /* !FILTERS_H */

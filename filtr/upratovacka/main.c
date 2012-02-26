@@ -78,6 +78,11 @@ int main(int argc, char *argv[])
     widgets.gaussian_blur_vertical =
                     GET_WIDGET_BY_ID(builder, "gaussian_blur_vertical");
 
+    widgets.sharpen_dialog =
+                    GET_WIDGET_BY_ID(builder, "sharpen_dialog");
+    widgets.sharpen_amount =
+                    GET_WIDGET_BY_ID(builder, "sharpen_amount");
+
 
 
     /* Connect signals. */
