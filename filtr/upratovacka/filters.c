@@ -1,6 +1,6 @@
 #include <glib.h>
 
-#include <math.h> /* sqrt */
+#include <math.h>
 #include <stdlib.h>
 
 #include "filters.h"
@@ -134,76 +134,78 @@ int* edge_detect(int c_size, int cx[], int cy[],
     return res;
 }
 
-void gaussian_kernel(double sigma, int size, int k[])
+void gaussian_kernel(double sigma, int size, unsigned k[])
 {
-	int i, half;
+    int i, half;
 
-	/* Assure that size is odd. */
-	size += size & 1;
-	size -= 1;
-
-	half = size / 2;
-	for (i = 0; i < size; i++)
-		k[i] = 0;
+    half = size / 2;
 
 #define SQRT_2_PI 2.5066282746
-	for (i = 0; i < half; i++) {
-		double gauss = exp(-.5 * (i * i) / (sigma * sigma)) 
+    for (i = 0; i < MAX(half, 1); i++) {
+        double gauss = exp(-.5 * (double) (i * i) / (sigma * sigma))
                      / (sigma * SQRT_2_PI);
-		k[half + i] = k[half - i] = (int) (gauss * 255.0);
-	}
+        k[half + i] = k[half - i] = (unsigned) (gauss * 0xFFFF);
+    }
 }
 
 
-void gaussian_blur(int size_x, int size_y, int kx[], int ky[],
+void gaussian_blur(int size_x, int size_y, unsigned kx[], unsigned ky[],
                    guchar dst[], guchar src[], int h, int s, int n_chans)
 {
     int channel, x, y, i;
-    int sum, offset;
-	int kx_sum, ky_sum;
-	int half_x, half_y;
-    guchar *p;
+    int chans;
+    int offset;
+    int half_x, half_y;
+    unsigned sum, kx_sum, ky_sum;
+    guchar *tmp;
 
-	half_x = size_x / 2;
-	half_y = size_y / 2;
+    tmp = (guchar*) g_malloc0(sizeof(guchar) * h * s);
+    chans = MIN(3, n_chans);
 
-	kx_sum = ky_sum = 0;
-	for (i = 0; i < size_x; i++)
-		kx_sum += kx[i];
-	for (i = 0; i < size_y; i++)
-		ky_sum += ky[i];
+    half_x = size_x / 2;
+    half_y = size_y / 2;
 
-	/* TODO extrapolation. */
+    kx_sum = ky_sum = 0;
+    for (i = 0; i < size_x; i++)
+        kx_sum += kx[i];
+    for (i = 0; i < size_y; i++)
+        ky_sum += ky[i];
 
-	/* Vertical pass. */
-    for (channel = 0; channel < MIN(3, n_chans); channel++) {
-        for (y = half_y; y < h - half_y; y++) {
+    /* Horizontal pass. */
+    for (channel = 0; channel < chans; channel++) {
+        for (y = 0; y < h; y++) {
             for (x = 0; x < s; x += n_chans) {
                 offset = y * s + x + channel;
-                p = src + offset;
 
                 sum = 0;
-				for (i = 0; i < size_y; i++)
-					sum += ky[i] * p[(i - half_y) * s];
+                for (i = 0; i < size_x; i++)
+                    sum += kx[i] * src[y * s + channel
+                                             + MAX(0,
+                                               MIN(s - n_chans,
+                                               x + (i - half_x) * n_chans))];
+
+                tmp[offset] = (guchar) (sum / kx_sum);
+            }
+        }
+    }
+
+    /* Vertical pass. */
+    for (channel = 0; channel < chans; channel++) {
+        for (y = 0; y < h; y++) {
+            for (x = 0; x < s; x += n_chans) {
+                offset = y * s + x + channel;
+
+                sum = 0;
+                for (i = 0; i < size_y; i++)
+                    sum += ky[i] * tmp[x + channel
+                                         + s * MAX(0,
+                                               MIN(h - 1,
+                                                   y + i - half_y))];
 
                 dst[offset] = (guchar) (sum / ky_sum);
             }
         }
     }
 
-	/* Horizontal pass. */
-    for (channel = 0; channel < MIN(3, n_chans); channel++) {
-        for (y = 0; y < h; y++) {
-            for (x = half_x * n_chans; x < s - half_x * n_chans; x += n_chans) {
-                offset = y * s + x + channel;
-                p = src + offset;
-
-                sum = 0;
-				for (i = 0; i < size_x; i++)
-					sum += kx[i] * p[(i - half_x) * n_chans];
-
-                dst[offset] = (guchar) (sum / kx_sum);
-            }
-        }
-    }
+    g_free(tmp);
 }

@@ -463,15 +463,9 @@
             <child>
               <object class="GtkSpinButton" id="gaussian_blur_horizontal">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="invisible_char">•</property>
-                <property name="activates_default">True</property>
-                <property name="overwrite_mode">True</property>
-                <property name="progress_fraction">0.5</property>
-                <property name="climb_rate">0.10000000000000001</property>
+                <property name="can_focus">False</property>
+                <property name="adjustment">gaussian_blur_horizontal_adjustment</property>
                 <property name="digits">1</property>
-                <property name="snap_to_ticks">True</property>
-                <property name="numeric">True</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -482,11 +476,10 @@
             <child>
               <object class="GtkSpinButton" id="gaussian_blur_vertical">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="invisible_char">•</property>
+                <property name="can_focus">False</property>
+                <property name="progress_pulse_step">0.5</property>
+                <property name="adjustment">gaussian_blur_vertical_adjustment</property>
                 <property name="digits">1</property>
-                <property name="snap_to_ticks">True</property>
-                <property name="numeric">True</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -507,6 +500,16 @@
       <action-widget response="0">button12</action-widget>
       <action-widget response="1">button11</action-widget>
     </action-widgets>
+  </object>
+  <object class="GtkAdjustment" id="gaussian_blur_horizontal_adjustment">
+    <property name="upper">10</property>
+    <property name="step_increment">0.5</property>
+    <property name="page_increment">10</property>
+  </object>
+  <object class="GtkAdjustment" id="gaussian_blur_vertical_adjustment">
+    <property name="upper">10</property>
+    <property name="step_increment">0.5</property>
+    <property name="page_increment">10</property>
   </object>
   <object class="GtkDialog" id="gray_scale_dialog">
     <property name="can_focus">False</property>

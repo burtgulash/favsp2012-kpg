@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
     g_object_unref(builder);
 
     /* Display and run. */
-    gtk_widget_show(widgets.window);
+    gtk_widget_show_all(widgets.window);
     gtk_main();
 
     return EXIT_SUCCESS;

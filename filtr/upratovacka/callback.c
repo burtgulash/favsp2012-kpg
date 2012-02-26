@@ -77,7 +77,7 @@ G_MODULE_EXPORT void
 on_filter_gaussian_blur_choose(GtkWidget *widget, gpointer data)
 {
     int response;
-	double horizontal, vertical;
+    double horizontal, vertical;
 
     if(!IS_EMPTY(undo_stack, up, u_start)) {
         response = gtk_dialog_run(
@@ -102,29 +102,38 @@ static void apply_gaussian_blur(double horizontal, double vertical)
 {
     GdkPixbuf *buf, *new;
     guchar *ps, *news;
-    int *kernel_x, *kernel_y;
-	int size;
+    unsigned *kernel_x, *kernel_y;
+    unsigned size_x, size_y;
 
     buf = PEEK(undo_stack, up);
-	new = gdk_pixbuf_copy(buf);
+    new = gdk_pixbuf_copy(buf);
     ps = gdk_pixbuf_get_pixels(buf);
     news = gdk_pixbuf_get_pixels(new);
 
-	size = 31;
+    /* Compute size of kernel matrix according to sigmas. */
+    size_x = 8 * (unsigned) horizontal + 8;
+    size_y = 8 * (unsigned) vertical + 8;
 
-	/* Make size odd number. */
-	size += size & 1;
-	size -= 1;
+    /* Make size odd number. */
+    size_x += size_x & 1;
+    size_x -= 1;
+    size_y += size_y & 1;
+    size_y -= 1;
 
 
-	kernel_x = g_malloc(sizeof(int) * size);
-	kernel_y = g_malloc(sizeof(int) * size);
-    gaussian_kernel(horizontal, size, kernel_x);
-    gaussian_kernel(vertical, size, kernel_y);
+    /* Ensure that sigma is sufficiently large. */
+    horizontal = MAX(horizontal, .02);
+    vertical = MAX(vertical, .02);
 
-	gaussian_blur(size, size, kernel_x, kernel_y, 
-                  news, ps, 
-                  p_data.height, 
+    kernel_x = g_malloc0(sizeof(unsigned) * size_x);
+    kernel_y = g_malloc0(sizeof(unsigned) * size_y);
+
+    gaussian_kernel(horizontal, size_x, kernel_x);
+    gaussian_kernel(vertical, size_y, kernel_y);
+
+    gaussian_blur(size_x, size_y, kernel_x, kernel_y,
+                  news, ps,
+                  p_data.height,
                   p_data.rowstride,
                   p_data.n_channels);
 
@@ -323,8 +332,8 @@ on_menu_open_activate(GtkWidget *widget, gpointer data)
             p_data.bits_per_sample = gdk_pixbuf_get_bits_per_sample(buf);
             p_data.width = gdk_pixbuf_get_width(buf);
             p_data.height = gdk_pixbuf_get_height(buf);
-			p_data.rowstride = gdk_pixbuf_get_rowstride(buf);
-			p_data.n_channels = gdk_pixbuf_get_n_channels(buf);
+            p_data.rowstride = gdk_pixbuf_get_rowstride(buf);
+            p_data.n_channels = gdk_pixbuf_get_n_channels(buf);
         } else {
             g_printerr("%s is not an image.\n", filename);
         }
