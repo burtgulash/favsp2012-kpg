@@ -370,9 +370,13 @@ void sharpen(double sigma, unsigned char* dst, unsigned char *src,
              int h, int s, int n_chans)
 {
     int x, y, channel, offset;
+    unsigned char* tmp;
 
+    tmp = (unsigned char*) malloc(h * s * sizeof(unsigned char));
 
-    difference_of_gaussians(sigma, 0, dst, src, h, s, n_chans);
+    /* difference_of_gaussians(sigma, 0, dst, src, h, s, n_chans); */
+    sobel(tmp, src, h, s, n_chans);
+    laplace(dst, tmp, h, s, n_chans);
 
     for (channel = 0; channel < MIN(3, n_chans); channel++) {
         for (y = 0; y < h; y++) {
@@ -383,4 +387,6 @@ void sharpen(double sigma, unsigned char* dst, unsigned char *src,
             }
         }
     }
+
+    free(tmp);
 }
