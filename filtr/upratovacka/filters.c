@@ -48,7 +48,7 @@ void gray_scale_avg(guchar ps[], int h, int s, int n_chans)
 }
 
 
-int* sobel(guchar ps[], int h, int s, int n_chans)
+void sobel(guchar news[], guchar olds[], int h, int s, int n_chans)
 {
     int sobel_x[] = {-1, 0, 1,
                      -2, 0, 2,
@@ -56,11 +56,11 @@ int* sobel(guchar ps[], int h, int s, int n_chans)
     int sobel_y[] = {-1,-2,-1,
                       0, 0, 0,
                       1, 2, 1};
-
-    return edge_detect(3, sobel_x, sobel_y, ps, h, s, n_chans);
+    edge_detect(3, sobel_x, sobel_y, news, olds, h, s, n_chans);
 }
 
-int* prewitt(guchar ps[], int h, int s, int n_chans)
+
+void prewitt(guchar news[], guchar olds[], int h, int s, int n_chans)
 {
     int prewitt_x[] = {-1, 0, 1,
                      -1, 0, 1,
@@ -69,53 +69,57 @@ int* prewitt(guchar ps[], int h, int s, int n_chans)
                       0, 0, 0,
                       1, 1, 1};
 
-    return edge_detect(3, prewitt_x, prewitt_y, ps, h, s, n_chans);
+    edge_detect(3, prewitt_x, prewitt_y, news, olds, h, s, n_chans);
 }
 
-int* roberts_cross(guchar ps[], int h, int s, int n_chans)
+
+void roberts_cross(guchar news[], guchar olds[], int h, int s, int n_chans)
 {
     int rc_x[] = {1, 0,
                   0, -1};
     int rc_y[] = {0, 1,
                  -1, 0};
 
-    return edge_detect(2, rc_x, rc_y, ps, h, s, n_chans);
+    edge_detect(2, rc_x, rc_y, news, olds, h, s, n_chans);
 }
 
 
-int* laplace(guchar ps[], int h, int s, int n_chans)
+void laplace(guchar news[], guchar olds[], int h, int s, int n_chans)
 {
     int laplace[] = {-1, -1, -1,
                      -1, +8, -1,
                      -1, -1, -1};
 
-    return edge_detect(3, laplace, laplace, ps, h, s, n_chans);
+    edge_detect(3, laplace, laplace, news, olds, h, s, n_chans);
 }
 
 
-int* edge_detect(int c_size, int cx[], int cy[],
-                 guchar ps[], int h, int s, int n_chans)
+void edge_detect(int c_size, int cx[], int cy[],
+                 guchar dst[], guchar src[], int h, int s, int n_chans)
 {
     int c_half;
     int channel, x, y;
     int xx, yy;
     int offset, c_off, p_off;
-    int *res;
     int sumx, sumy;
+    int min, max;
+    int *tmp, tmp_value;
     guchar *p;
 
-    res = (int*) g_malloc(sizeof(int) * s * h);
+    tmp = g_malloc(sizeof(int) * h * s);
     c_half = c_size / 2;
 
 
     for (channel = 0; channel < MIN(3, n_chans); channel++) {
+        min = 0x0;
+        max = 0xFF;
+
         for (y = c_half; y < h - c_half; y++) {
             for (x = c_half * n_chans; x < s - c_half * n_chans; x += n_chans) {
                 offset = y * s + x + channel;
-                p = ps + offset;
+                p = src + offset;
 
                 sumx = sumy = 0;
-                /* Convolve image with convolution matrix c. */
                 for (yy = 0; yy < c_size; yy++) {
                     for (xx = 0; xx < c_size; xx++) {
                         c_off = yy * c_size + xx;
@@ -125,14 +129,31 @@ int* edge_detect(int c_size, int cx[], int cy[],
                         sumy += cy[c_off] * p[p_off];
                     }
                 }
+                
+                tmp_value = (int) sqrt((double) (sumx * sumx + sumy * sumy));
+                tmp[offset] = tmp_value;
 
-                res[offset] = (int) sqrt((double) (sumx * sumx + sumy * sumy));
+                if (tmp_value > max)
+                    max = tmp_value;
+                if (tmp_value < min)
+                    min = tmp_value;
+            }
+        }
+
+        for (y = 0; y < h; y++) {
+            for (x = 0; x < s; x += n_chans) {
+                offset = y * s + x + channel;
+
+                dst[offset] = (guchar) 
+                              (0xFF * (tmp[offset] - min) / (max - min));
             }
         }
     }
 
-    return res;
+    g_free(tmp);
 }
+
+
 
 void gaussian_kernel(double sigma, int size, unsigned k[])
 {

@@ -10,12 +10,12 @@ void gray_scale_avg(guchar ps[], int h, int s, int n_chans);
 
 
 /* Edge detection. */
-int* sobel(guchar ps[], int h, int s, int n_chans);
-int* prewitt(guchar ps[], int h, int s, int n_chans);
-int* roberts_cross(guchar ps[], int h, int s, int n_chans);
-int* laplace(guchar ps[], int h, int s, int n_chans);
-int* edge_detect(int c_size, int cx[], int cy[],
-                 guchar ps[], int h, int s, int n_chans);
+void sobel(guchar news[], guchar olds[], int h, int s, int n_chans);
+void prewitt(guchar news[], guchar olds[], int h, int s, int n_chans);
+void roberts_cross(guchar news[], guchar olds[], int h, int s, int n_chans);
+void laplace(guchar news[], guchar olds[], int h, int s, int n_chans);
+void edge_detect(int c_size, int cx[], int cy[],
+                 guchar dst[], guchar src[], int h, int s, int n_chans);
 
 
 /* Blur. */

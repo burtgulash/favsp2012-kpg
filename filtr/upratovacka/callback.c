@@ -87,7 +87,6 @@ on_filter_gaussian_blur_choose(GtkWidget *widget, gpointer data)
                          GTK_SPIN_BUTTON(widgets.gaussian_blur_horizontal));
             vertical = gtk_spin_button_get_value(
                        GTK_SPIN_BUTTON(widgets.gaussian_blur_vertical));
-g_print("%g, %g\n", horizontal, vertical);
 
             apply_gaussian_blur(horizontal, vertical);
         }
@@ -97,17 +96,16 @@ g_print("%g, %g\n", horizontal, vertical);
 }
 
 
-/* TODO two directions. */
 static void apply_gaussian_blur(double horizontal, double vertical)
 {
     GdkPixbuf *buf, *new;
-    guchar *ps, *news;
+    guchar *olds, *news;
     unsigned *kernel_x, *kernel_y;
     unsigned size_x, size_y;
 
     buf = PEEK(undo_stack, up);
     new = gdk_pixbuf_copy(buf);
-    ps = gdk_pixbuf_get_pixels(buf);
+    olds = gdk_pixbuf_get_pixels(buf);
     news = gdk_pixbuf_get_pixels(new);
 
     /* Compute size of kernel matrix according to sigmas. */
@@ -132,7 +130,7 @@ static void apply_gaussian_blur(double horizontal, double vertical)
     gaussian_kernel(vertical, size_y, kernel_y);
 
     gaussian_blur(size_x, size_y, kernel_x, kernel_y,
-                  news, ps,
+                  news, olds,
                   p_data.height,
                   p_data.rowstride,
                   p_data.n_channels);
@@ -184,73 +182,41 @@ static void apply_gray_scale(int method)
 static void apply_edge_detect(int method)
 {
     int h, s, n_chans;
-    int min, max;
-    int channel, x, y;
-    int *filtered;
-    int offset, value;
     GdkPixbuf *buf, *new;
-    guchar *ps, *news;
+    guchar *olds, *news;
 
     buf = PEEK(undo_stack, up);
-    new = gdk_pixbuf_new(p_data.colorspace,
-                         p_data.has_alpha,
-                         p_data.bits_per_sample,
-                         p_data.width,
-                         p_data.height);
+    new = gdk_pixbuf_copy(buf);
 
-    ps = gdk_pixbuf_get_pixels(buf);
+    olds = gdk_pixbuf_get_pixels(buf);
     news = gdk_pixbuf_get_pixels(new);
-    h = gdk_pixbuf_get_height(buf);
-    s = gdk_pixbuf_get_rowstride(buf);
-    n_chans = gdk_pixbuf_get_n_channels(buf);
 
+	h = p_data.height;
+	s = p_data.rowstride;
+	n_chans = p_data.n_channels;
 
-    g_print("Apply edge detection filter ");
     switch (method) {
         case SOBEL:
             g_print("Sobel");
-            filtered = sobel(ps, h, s, n_chans);
+            sobel(news, olds, h, s, n_chans);
             break;
 
         case PREWITT:
             g_print("Prewitt");
-            filtered = prewitt(ps, h, s, n_chans);
+            prewitt(news, olds, h, s, n_chans);
             break;
 
         case LAPLACE:
             g_print("Laplace");
-            filtered = laplace(ps, h, s, n_chans);
+            laplace(news, olds, h, s, n_chans);
             break;
 
         default:
             g_print("Roberts cross");
-            filtered = roberts_cross(ps, h, s, n_chans);
+            roberts_cross(news, olds, h, s, n_chans);
     }
     g_print("\n");
 
-    for (channel = 0; channel < MIN(3, n_chans); channel++) {
-        min = 0x0;
-        max = 0xFF;
-
-        for (y = 0; y < h; y++) {
-            for (x = 0; x < s; x += n_chans) {
-                value = filtered[y * s + x + channel];
-                if (value > max)
-                    max = value;
-                if (value < min)
-                    min = value;
-            }
-        }
-
-        for (y = 0; y < h; y++) {
-            for (x = 0; x < s; x += n_chans) {
-                offset = y * s + x + channel;
-                news[offset] = (filtered[offset] - min) * 0xFF / (max - min);
-            }
-        }
-    }
-
-    g_free(filtered);
     UPDATE_EDITED_IMAGE(new);
 }
 
