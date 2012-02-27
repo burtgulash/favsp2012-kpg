@@ -42,7 +42,7 @@ extern AppWidgets widgets;
 static void apply_edge_detect(int method);
 static void apply_gray_scale(int method);
 
-enum {SOBEL, PREWITT, ROBERTS_CROSS, LAPLACE};
+enum {SOBEL, PREWITT, ROBERTS_CROSS};
 enum {LUMINANCE, AVERAGE};
 
 ON_FILTER_CHOOSE(gray_scale)
@@ -80,6 +80,43 @@ on_filter_sharpen_choose(GtkWidget *widget, gpointer data)
 
         gtk_widget_hide(widgets.sharpen_dialog);
     }
+}
+
+
+G_MODULE_EXPORT void
+on_laplacian_of_sobel_choose(GtkWidget *widget, gpointer data)
+{
+    GdkPixbuf *buf, *new;
+    guchar *olds, *news;
+    int x, y, h, s, n_chans, channel, offset;
+    int *tmp;
+
+    buf = PEEK(undo_stack, up);
+    new = gdk_pixbuf_copy(buf);
+    olds = gdk_pixbuf_get_pixels(buf);
+    news = gdk_pixbuf_get_pixels(new);
+
+    h = p_data.height;
+    s = p_data.rowstride;
+    n_chans = p_data.n_channels;
+    tmp = (int*) g_malloc(h * s * sizeof(int));
+
+    sobel(news, olds, h, s, n_chans);
+    laplace(tmp, news, h, s, n_chans);
+
+    for (channel = 0; channel < MIN(3, n_chans); channel++) {
+        for (y = 0; y < h; y++) {
+            for (x = 0; x < s; x += n_chans) {
+                offset = y * s + x + channel;
+
+                news[offset] = MAX(0, tmp[offset]);
+            }
+        }
+    }
+
+    g_free(tmp);
+
+    UPDATE_EDITED_IMAGE(new);
 }
 
 
@@ -132,10 +169,10 @@ on_filter_gaussian_blur_choose(GtkWidget *widget, gpointer data)
         response = gtk_dialog_run(
                    GTK_DIALOG(widgets.gaussian_blur_dialog));
         if (response == 1) {
-            horizontal = gtk_spin_button_get_value(
-                         GTK_SPIN_BUTTON(widgets.gaussian_blur_horizontal));
-            vertical = gtk_spin_button_get_value(
-                       GTK_SPIN_BUTTON(widgets.gaussian_blur_vertical));
+            horizontal = gtk_range_get_value(
+                         GTK_RANGE(widgets.gaussian_blur_horizontal));
+            vertical = gtk_range_get_value(
+                       GTK_RANGE(widgets.gaussian_blur_vertical));
 
             buf = PEEK(undo_stack, up);
             new = gdk_pixbuf_copy(buf);
@@ -170,18 +207,14 @@ static void apply_gray_scale(int method)
     n_chans = gdk_pixbuf_get_n_channels(buf);
 
 
-    g_print("Apply gray_scale filter ");
     switch (method) {
         case AVERAGE:
-            g_print("average");
             gray_scale_avg(news, h, s, n_chans);
             break;
 
         default:
-            g_print("luminance");
             gray_scale_luminance(news, h, s, n_chans);
     }
-    g_print("\n");
 
     UPDATE_EDITED_IMAGE(new);
 }
@@ -205,25 +238,16 @@ static void apply_edge_detect(int method)
 
     switch (method) {
         case SOBEL:
-            g_print("Sobel");
             sobel(news, olds, h, s, n_chans);
             break;
 
         case PREWITT:
-            g_print("Prewitt");
             prewitt(news, olds, h, s, n_chans);
             break;
 
-        case LAPLACE:
-            g_print("Laplace");
-            laplace(news, olds, h, s, n_chans);
-            break;
-
         default:
-            g_print("Roberts cross");
             roberts_cross(news, olds, h, s, n_chans);
     }
-    g_print("\n");
 
     UPDATE_EDITED_IMAGE(new);
 }
@@ -246,7 +270,6 @@ on_undo_clicked(GtkWidget *widget, gpointer data)
             HAS_LAST(undo_stack, up, u_start))
             SET_SENSITIVITY_DO_BUTTON(undo, FALSE);
 
-        g_print("Undo\n");
     }
 }
 
@@ -265,7 +288,6 @@ on_redo_clicked(GtkWidget *widget, gpointer data)
         if (IS_EMPTY(redo_stack, rp, r_start))
             SET_SENSITIVITY_DO_BUTTON(redo, FALSE);
 
-        g_print("Redo\n");
     }
 }
 
@@ -274,7 +296,6 @@ G_MODULE_EXPORT void
 on_about_activate(GtkWidget *widget, gpointer data)
 {
     gtk_dialog_run(GTK_DIALOG(widgets.aboutdialog));
-    g_print("About\n");
     gtk_widget_hide(widgets.aboutdialog);
 }
 

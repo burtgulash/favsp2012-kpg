@@ -277,9 +277,6 @@ of second</property>
       <row>
         <col id="0" translatable="yes">Roberts Cross</col>
       </row>
-      <row>
-        <col id="0" translatable="yes">Laplace</col>
-      </row>
     </data>
   </object>
   <object class="GtkFileChooserDialog" id="filechooser_open">
@@ -506,35 +503,31 @@ Variance</property>
               </packing>
             </child>
             <child>
-              <object class="GtkSpinButton" id="gaussian_blur_horizontal">
+              <object class="GtkScale" id="gaussian_blur_vertical">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="hexpand">True</property>
-                <property name="invisible_char">•</property>
-                <property name="adjustment">gaussian_blur_horizontal_adjustment</property>
-                <property name="climb_rate">1</property>
-                <property name="digits">1</property>
+                <property name="adjustment">gaussian_blur_vertical_adjustment</property>
+                <property name="round_digits">1</property>
               </object>
               <packing>
                 <property name="left_attach">1</property>
-                <property name="top_attach">0</property>
+                <property name="top_attach">1</property>
                 <property name="width">1</property>
                 <property name="height">1</property>
               </packing>
             </child>
             <child>
-              <object class="GtkSpinButton" id="gaussian_blur_vertical">
+              <object class="GtkScale" id="gaussian_blur_horizontal">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="hexpand">True</property>
-                <property name="invisible_char">•</property>
-                <property name="adjustment">gaussian_blur_vertical_adjustment</property>
-                <property name="climb_rate">1</property>
-                <property name="digits">1</property>
+                <property name="adjustment">gaussian_blur_horizontal_adjustment</property>
+                <property name="round_digits">1</property>
               </object>
               <packing>
                 <property name="left_attach">1</property>
-                <property name="top_attach">1</property>
+                <property name="top_attach">0</property>
                 <property name="width">1</property>
                 <property name="height">1</property>
               </packing>
@@ -682,7 +675,7 @@ Variance</property>
   <object class="GtkAdjustment" id="sharpen_adjustment">
     <property name="upper">10</property>
     <property name="value">1</property>
-    <property name="step_increment">1</property>
+    <property name="step_increment">0.01</property>
     <property name="page_increment">10</property>
   </object>
   <object class="GtkDialog" id="sharpen_dialog">
@@ -746,10 +739,10 @@ Variance</property>
             <property name="can_focus">False</property>
             <property name="orientation">vertical</property>
             <child>
-              <object class="GtkLabel" id="label3">
+              <object class="GtkLabel" id="label_sharpen">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="label" translatable="yes">Sharpen amount</property>
+                <property name="label" translatable="yes">Sharpen coefficient</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -914,6 +907,16 @@ Variance</property>
                                 <signal name="activate" handler="on_filter_edge_detect_choose" swapped="no"/>
                               </object>
                             </child>
+                            <child>
+                              <object class="GtkMenuItem" id="laplacian_of_sobel">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="use_action_appearance">False</property>
+                                <property name="label" translatable="yes">Laplacian of Sobel</property>
+                                <property name="use_underline">True</property>
+                                <signal name="activate" handler="on_laplacian_of_sobel_choose" swapped="no"/>
+                              </object>
+                            </child>
                           </object>
                         </child>
                       </object>
@@ -1042,8 +1045,8 @@ Variance</property>
                 <property name="label" translatable="yes">Undo</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-undo</property>
-                <accelerator key="u" signal="clicked"/>
                 <accelerator key="z" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
+                <accelerator key="u" signal="clicked"/>
                 <signal name="clicked" handler="on_undo_clicked" swapped="no"/>
               </object>
               <packing>
@@ -1060,8 +1063,8 @@ Variance</property>
                 <property name="label" translatable="yes">Redo</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-redo</property>
-                <accelerator key="r" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
                 <accelerator key="y" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
+                <accelerator key="r" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
                 <signal name="clicked" handler="on_redo_clicked" swapped="no"/>
               </object>
               <packing>
