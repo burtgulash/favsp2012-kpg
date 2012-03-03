@@ -41,7 +41,7 @@ mandelbrot_iterations(double *buf, int w, int h,
 	int x, y;
 	double re_0, im_0, re, im;
 	double abs, tmp;
-	unsigned i;
+	int i;
 
 	for (y = 0; y < h; y++) {
 		for (x = 0; x < w; x++) {
@@ -64,29 +64,55 @@ mandelbrot_iterations(double *buf, int w, int h,
 	}
 }
 
-/* static int colors[] = {0xFFFFFF, 0xa1b835, 0xe7571e, 0}; */
-static int colors[] = {0, 0x888888, 0xFFFFFF};
+/* 
+static int colors[] = {0xFFFFFF, 0xa1b835, 0xe7571e, 0};
+static int col_pos[] = {0, 20, 50, 100};
+*/
+/*
+static int colors[] = {0xFFFFFF, 0xe6dbac, 0};
+static int col_pos[] = {0, 20, 100};
+*/
+/* 
+static int colors[] = {0xFFFFFF, 0};
+static int col_pos[] = {0, 100};
+*/
+static int colors[] = {0, 0, 0x5f104f, 0xffffff, 0xe819a6, 0x5f104f, 0};
+static int col_pos[] = {0, 20, 45, 50, 55, 65, 100};
 static int col_len = sizeof colors / sizeof(int);
 
 #define ABS(x) ((x) < 0 ? -(x) : (x))
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 
-static void get_color(unsigned intensity, unsigned scale,
+static void get_color(int intensity, int scale,
                       unsigned char *r, unsigned char *g, unsigned char *b)
 {
-	int pos, rate;
+	int rate;
+	int col;
 	int c1, c2;
 	int r1, r2;
 	int g1, g2;
 	int b1, b2;
 	int r_temp, g_temp, b_temp;
+	int i;
 
-	pos = intensity * (col_len - 1) / scale;
-	rate = intensity - pos * scale / (col_len - 1);
+	intensity = scale - intensity;
+	col = intensity * col_pos[col_len - 1] / scale;
+	c1 = colors[col_len - 2];
+	c2 = colors[col_len - 1];
+	rate = scale;
+	
+	for (i = 1; i < col_len; i++) {
+		if (col_pos[i] >= col) {
+			c1 = colors[i - 1];
+			c2 = colors[i]; 
 
-	c1 = colors[pos];
-	c2 = colors[pos + 1];
+			rate = (col - col_pos[i - 1]) * scale 
+                 / (col_pos[i] - col_pos[i - 1]);
+			break;
+		}
+	}
+
 	r1 = 0xFF & (c1 >> 16);
 	r2 = 0xFF & (c2 >> 16);
 	g1 = 0xFF & (c1 >> 8);
@@ -109,7 +135,7 @@ mandelbrot(PyObject *self, PyObject *args)
 {
 	int x, y;
 	int len, width, height, n_chans;
-	unsigned intensity;
+	int intensity;
 	unsigned char *buf, *position;
 	double *fractal_buffer;
 	double xlo, xhi, ylo, yhi;
