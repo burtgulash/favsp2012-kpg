@@ -15,7 +15,7 @@ class Mandelbrator:
 
 		self.img = builder.get_object("img")
 		self.pixbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, \
-                                     False, 8, 600, 500)
+                                     False, 8, 800, 600)
 		self.width = self.pixbuf.get_width()
 		self.height = self.pixbuf.get_height()
 		self.rowstride = self.pixbuf.get_rowstride()
@@ -30,9 +30,28 @@ class Mandelbrator:
 		self.aboutdialog.hide()
 
 	def on_file_new(self, widget, data=None):
+		self.update_fractal()
+
+	def on_file_save(self, widget, data=None):
+		if not self.filename:
+			self.on_file_save_as(widget)
+		else:
+			save_image(filename)
+		
+	def on_file_save_as(self, widget, data=None):
+		pass
+		# run dialog
+
+	def update_fractal(self):
+		xlo = -2.0
+		xhi = 1.5
+		ylo = -1.2
+		yhi = ylo + self.height * (xhi - xlo) / self.width
+
 		new = self.pixbuf.copy()
 		news = new.get_pixels()
-		res = mandelbrator.mandelbrot(news, self.width, self.height)
+		res = mandelbrator.mandelbrot(news, self.width, self.height,
+                                      xlo, xhi, ylo, yhi)
 		res_buf = gtk.gdk.pixbuf_new_from_data(res, 
                                          self.pixbuf.get_colorspace(),
                                          self.pixbuf.get_has_alpha(),
@@ -41,6 +60,7 @@ class Mandelbrator:
                                          self.height,
                                          self.rowstride)
 		self.img.set_from_pixbuf(res_buf)
+		
 		
 
 if __name__ == "__main__":
