@@ -134,28 +134,32 @@ static PyObject *
 mandelbrot(PyObject *self, PyObject *args)
 {
 	int x, y;
+	int x_off, y_off;
 	int len, width, height, n_chans;
 	int intensity;
-	unsigned char *buf, *position;
+	unsigned char *buf, *p;
 	double *fractal_buffer;
 	double xlo, xhi, ylo, yhi;
+	double sum;
 
 	if (!PyArg_ParseTuple(args, "s#iidddd", &buf, &len, &width, &height,
                                             &xlo, &xhi, &ylo, &yhi))
 		return NULL;
 	n_chans = 3;
 	
-	fractal_buffer = (double*) malloc(height * width * sizeof(double));
+	fractal_buffer = 
+       (double*) malloc(height * width * sizeof(double));
 	mandelbrot_iterations(fractal_buffer, width, height, xlo, xhi, ylo, yhi);
 #define SCALE ITERATIONS
 
 	for (y = 0; y < height; y++)
 		for (x = 0; x < width; x++) {
-			position = buf + ((height - 1 - y) * width + x) * n_chans;
-			intensity = (log(fractal_buffer[y * width + x] + 1) 
-                        / log(ITERATIONS + 2)) * SCALE;
+			intensity = (log(fractal_buffer[y * width + x] + 1.0) 
+                        / log(ITERATIONS + 2.0)) * SCALE;
 			intensity = MIN(MAX(intensity, 0), SCALE);
-			get_color(intensity, SCALE, position, position + 1, position + 2);
+
+			p = buf + ((height - 1 - y) * width + x) * n_chans;
+			get_color(intensity, SCALE, p, p + 1, p + 2);
 		}
 
 	free(fractal_buffer);
