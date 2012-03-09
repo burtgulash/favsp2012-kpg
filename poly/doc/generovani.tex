@@ -1,0 +1,79 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[czech]{babel}
+
+\title{Krásy počítačové grafiky: Generování polygonu}
+\author{Tomáš Maršálek}
+\date{9.\,března 2012}
+
+\begin{document}
+\maketitle
+
+\section{Zadání}
+Vymyslete co nejefektivnější a implementačně nejjeednodušší algoritmus pro
+vygenerování náhodného  obecného polygonu (takového, který má konvexní i
+nekonvexní úhly a jeho strany se neprotínají).
+
+\section{Postup}
+Algoritmus začíná s nedegenerovaným trojúhelníkem. V každé iteraci vybere
+náhodně hranu a bod na ní. Posunutím tohoto bodu o náhodnou nenulovou
+vzdálenost ve směru kolmice k hraně, na které leží, získáme dvě nové hrany. Je
+samozřejmě třeba zajstit, aby nedošlo k protnutí dvou nově vytvořených hran s
+již existujícími. 
+
+Protože vycházíme z polygonu, který splňuje zadání, a v každé iteraci provedeme
+kroky, které zadání nijak neporuší, můžeme kdykoliv algoritmus zastavit a
+budeme mít polygon vyhovující zadání.
+
+\section{Protnutí hran}
+Při nově vytvořených hranách může dojít k průsečíkům, čímž by se porušila
+podmínka, že se strany nesmí protínat. Algoritmus v každé iteraci testuje
+průsečíky dvou nových hran se všemi stávajícími hranami. Ve skutečnosti stačí
+testovat jen pro jednu z nových hran, protože pokud by došlo k průniku, musí se
+protnout obě.
+
+Detekci protnutí hran lze algoritmitky řešit jako průsečík dvou úseček, které
+jsou určeny parametrickými rovnicemi.
+$$P_a = P_1 + t_a (P_2 - P_1),\ t_a \in [0, 1]$$
+$$P_b = P_3 + t_b (P_4 - P_3),\ t_b \in [0, 1]$$ \\
+
+Průsečík získáme porovnáním bodů $P_a$ a $P_b$, výsledné rovnice, které leží
+pod vektorovou reprezentací, budou
+$$x_1 + t_a (x_2 - x_1) = x_3 + t_b (x_3 - x_1)$$
+$$y_1 + t_b (y_2 - y_1) = y_3 + t_b (y_3 - y_1)$$ \\
+
+Symetrická řešení pro parametry $t_a$ a $t_b$ jsou zlomky, které mají stejný
+jmenovatel
+$$t_a = \frac{(x_4 - x_3)(y_1 - y_3) - (y_4 - y_3)(x_1 - x_3)} 
+             {(y_4 - y_3)(x_2 - x_1) - (x_4 - x_3)(y_2 - y_1)}$$
+$$t_b = \frac{(x_2 - x_1)(y_1 - y_3) - (y_2 - y_1)(x_1 - x_3)}
+             {(y_4 - y_3)(x_2 - x_1) - (x_4 - x_3)(y_2 - y_1)}$$ \\
+
+Pro úsečky stačí zjistit, jestli leží oba parametry $t_a$ a $t_b$ v intervalu
+$[0, 1]$, pak víme, že se úsečky protly. Pokud jsou čitatel i jmenovatel nula,
+úsečky jsou koincidentní.
+
+V implementaci je možné provádět všechny operace na přesné celočíselné
+aritmetice, proto není třeba řešit numerické chyby.
+
+\section{Algoritmus}
+Následující pseudokód popisuje klíčové prvky algoritmu.
+
+\begin{verbatim}
+vytvoř negenerující trojúhelník
+opakuj (n - 3) krát:
+    náhodně vyber hranu
+    vyber na ní bod
+    opakuj:
+        vyber náhodnou hodnotu
+        posuň bod i s přilehlými stranami o hodnotu ve směru kolmice
+    dokud se nově vytvořené hrany neprotínají s existujícími
+vykresli hotový n-gon
+\end{verbatim}
+
+Dobu běhu nemůžeme přesně určit, protože vnitřní cyklus, který tvoří nové
+hrany, závisí na náhodném výběru hodnoty posunu. Pokud očekáváme pouze několik
+iterací tohoto cyklu, doba běhu je řádu $O(n^2)$, protože n-krát testujeme
+průsečík s n existujícími hranami.
+
+\end{document}
