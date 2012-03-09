@@ -11,13 +11,14 @@ import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.IOException;
 
+
 class Board extends JPanel {
     final int cellsX, cellsY;
     final int cellSize;
 
     final int maxAge = 300;
     final int[][] BLACK_WHITE = new int[][] {{0, maxAge}, {0xFFFFFF, 0xFF0000}};
-    final int[][] PALETTE = new int[][] 
+    final int[][] PALETTE = new int[][]
          {{0, 15, 30, 60, 120, maxAge},
            {0xFFFFFF, 0xb1e70c, 0x26e70c, 0x0db8c3, 0x40268a, 0x453f55}};
 
@@ -34,7 +35,7 @@ class Board extends JPanel {
         age = new int[2][cellsY + 2][cellsX + 2];
         lives = new byte[2][cellsY + 2][cellsX + 2];
 
-        for (int r = 0; r < cellsY; r++) 
+        for (int r = 0; r < cellsY; r++)
             for (int c = 0; c < cellsX; c++)
                 lives[0][r + 1][c + 1] = board[r][c];
     }
@@ -70,11 +71,11 @@ class Board extends JPanel {
                 int B1 = 0xFF & (color1);
                 int B2 = 0xFF & (color2);
 
-                int R = Math.min(R1, R2) 
+                int R = Math.min(R1, R2)
                         + Math.abs(R1 - R2) * (R1 < R2 ? s : r - s) / r;
-                int G = Math.min(G1, G2) 
+                int G = Math.min(G1, G2)
                         + Math.abs(G1 - G2) * (G1 < G2 ? s : r - s) / r;
-                int B = Math.min(B1, B2) 
+                int B = Math.min(B1, B2)
                         + Math.abs(B1 - B2) * (B1 < B2 ? s : r - s) / r;
 
                 return new Color(R, G, B);
@@ -89,10 +90,10 @@ class Board extends JPanel {
             for (int c = 1; c <= cellsX; c++) {
                 if (lives[iteration][r][c] == 1)
                     g.setPaint(blendColor(PALETTE, age[iteration][r][c]));
-                else 
+                else
                     g.setPaint(Color.BLACK);
 
-                g.fillRect((c - 1) * cellSize, 
+                g.fillRect((c - 1) * cellSize,
                            (r - 1) * cellSize, cellSize, cellSize);
             }
         }
@@ -105,13 +106,13 @@ class Board extends JPanel {
 
         for (int r = 1; r <= cellsY; r++) {
             for (int c = 1; c <= cellsX; c++) {
-                livingNeighbours = lives[iteration][r][c + 1] + 
-                                   lives[iteration][r + 1][c + 1] + 
-                                   lives[iteration][r + 1][c] + 
-                                   lives[iteration][r + 1][c - 1] + 
-                                   lives[iteration][r][c - 1] + 
+                livingNeighbours = lives[iteration][r][c + 1] +
+                                   lives[iteration][r + 1][c + 1] +
+                                   lives[iteration][r + 1][c] +
+                                   lives[iteration][r + 1][c - 1] +
+                                   lives[iteration][r][c - 1] +
                                    lives[iteration][r - 1][c - 1] +
-                                   lives[iteration][r - 1][c] + 
+                                   lives[iteration][r - 1][c] +
                                    lives[iteration][r - 1][c + 1];
 
                 if (lives[iteration][r][c] == 1) {
@@ -119,7 +120,7 @@ class Board extends JPanel {
                         age[next][r][c] = 0;
                         lives[next][r][c] = 0;
                     } else {
-                        age[next][r][c] = 
+                        age[next][r][c] =
                             Math.min(age[iteration][r][c] + 1, maxAge);
                         lives[next][r][c] = 1;
                     }
@@ -149,7 +150,7 @@ public class Life {
     private static byte[][] convertToBytes(int[] rgbs, int w, int h) {
         byte[][] board = new byte[h][w];
 
-        for (int r = 0; r < h; r++) 
+        for (int r = 0; r < h; r++)
             for (int c = 0; c < w; c++)
                 board[r][c] = (byte) (rgbs[r * w + c] == 0xFFFFFFFF ? 1 : 0);
 
