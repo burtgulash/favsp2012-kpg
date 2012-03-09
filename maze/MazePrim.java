@@ -32,7 +32,7 @@ class Movement implements Comparable<Movement> {
 }
 
 
-public class Maze extends JPanel {
+public class MazePrim extends JPanel {
     static int rows = 0, cols = 0;
     static int width, height;
     static int boxSize, innerBoxSize, wallThickness;
@@ -100,24 +100,24 @@ public class Maze extends JPanel {
         setSize(width, height);
 
         g.setPaint(Color.WHITE);
-        for (int i = 0; i < cols; i++) {
-            for (int j = 0; j < rows; j++) {
-                g.fillRect(j * boxSize + wallThickness, 
-                            i * boxSize + wallThickness, 
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                g.fillRect(j * boxSize + wallThickness,
+                            i * boxSize + wallThickness,
                             innerBoxSize, innerBoxSize);
                 if (wall[i][j][0])
-                    g.fillRect((j + 1) * boxSize, 
-                                 i * boxSize + wallThickness, 
+                    g.fillRect((j + 1) * boxSize,
+                                 i * boxSize + wallThickness,
                                  wallThickness, innerBoxSize);
                 if (wall[i][j][1])
                     g.fillRect(j * boxSize + wallThickness,
-                                (i + 1) * boxSize, 
+                                (i + 1) * boxSize,
                                 innerBoxSize, wallThickness);
             }
         }
 
         g.fillRect(wallThickness, 0, innerBoxSize, wallThickness);
-        g.fillRect((cols - 1) * boxSize + wallThickness, 
+        g.fillRect((cols - 1) * boxSize + wallThickness,
                     rows * boxSize, innerBoxSize, wallThickness);
     }
 
@@ -148,11 +148,11 @@ public class Maze extends JPanel {
         // Generate maze.
         generate(rows, cols);
 
-        JFrame frame = new JFrame("Maze generator ("+rows+" x "+cols+")");
+        JFrame frame = new JFrame("MazePrim generator ("+rows+" x "+cols+")");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setResizable(false);
 
-        Maze m = new Maze();
+        MazePrim m = new MazePrim();
         m.setPreferredSize(new Dimension(width, height));
 
         frame.add(m);

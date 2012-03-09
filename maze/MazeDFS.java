@@ -10,7 +10,7 @@ import javax.swing.JPanel;
 import javax.swing.JFrame;
 
 
-public class Maze extends JPanel {
+public class MazeDFS extends JPanel {
     static int rows = 0, cols = 0;
     static int width, height;
     static int boxSize, innerBoxSize, wallThickness;
@@ -85,8 +85,8 @@ public class Maze extends JPanel {
         setSize(width, height);
 
         g.setPaint(Color.WHITE);
-        for (int i = 0; i < cols; i++) {
-            for (int j = 0; j < rows; j++) {
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
                 g.fillRect(j * boxSize + wallThickness, 
                             i * boxSize + wallThickness, 
                             innerBoxSize, innerBoxSize);
@@ -133,11 +133,11 @@ public class Maze extends JPanel {
         // Generate maze.
         generate(0, rows, cols);
 
-        JFrame frame = new JFrame("Maze generator ("+rows+" x "+cols+")");
+        JFrame frame = new JFrame("MazeDFS generator ("+rows+" x "+cols+")");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setResizable(false);
 
-        Maze m = new Maze();
+        MazeDFS m = new MazeDFS();
         m.setPreferredSize(new Dimension(width, height));
 
         frame.add(m);
