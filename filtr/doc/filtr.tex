@@ -1,0 +1,89 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[czech]{babel}
+\usepackage{graphicx}
+
+\title{Krásy počítačové grafiky: Úpravy rastrového obrazu}
+\author{Tomáš Maršálek}
+\date{9.\,března 2012}
+
+\begin{document}
+\maketitle
+
+\section{Zadání}
+Vyzkoušejte si naprogramovat metody úpravy digitalizovaného obrazu z přednášky,
+jako je ostření, reliéf, warping, morphing.... Za program umějící aspoň jednu
+techniku získáte 5 bodů, za každou další naprogramovanou techniku získáte max.
+3 body podle obtížnosti, dohromady nejvýše 17 bodů. Program musí být schopen
+načíst ze souboru obraz v rastrovém formátu a zase jej uložit, zobrazit původní
+a změněný obraz s možností návratu o 1 akci. Odevzdáváte jako obvykle zdrojový
+text, EXE a dokumentaci.
+
+\section{Implementované filtry}
+\subsection{Detekce hran}
+Detekce hran je horní propust pro obrazový signál. Vysokou frekvencí v
+rastrovém obrazu se rozumí velký rozdíl v intenzitě barvy v jednotlivých
+kanálech.
+
+\subsubsection{Sobel, Prewitt a Roberts Cross}
+Jedná se o metody, které pro každý obrazový bod aplikují numerickou aproximaci
+první derivace v tomto bodě. Pro dva rozměry se vypočte velikost první derivace
+jako velikost gradientu, kde jednotlivé parciální derivace mají své příslušné
+konvoluční matice. Vyšší změna barvy se projeví vyšší hodnotou derivace, což
+vidíme jako detekovanou hranu. 
+
+Například Sobelův operátor používá konvoluční matice: \\
+$$
+D_x = 
+\left[
+\begin{array}{ccc}
+-1 & 0 & 1 \\
+-2 & 0 & 2 \\
+-1 & 0 & 1 \\
+\end{array}
+\right]
+,~~~~
+D_y = 
+\left[
+\begin{array}{ccc}
+-1 & -2 & -1 \\
+0 & 0 & 0 \\
+1 & 2 & 1 \\
+\end{array}
+\right]
+$$
+
+\subsubsection{Rozdíl Gaussovských rozostření}
+Rozostření funguje jako dolní propust pro obrazový signál. Největší změny
+oproti původnímu obrázku nastanou právě v místech, kde se nachází hrany. Ty se
+relativně rozostří nejvíce. Proto když od původního obrázku odečteme jeho
+rozostřenou verzi, největší změnu uvidíme právě v místech hran.
+
+Rozdíl dvou různě silných rozostření je pouze zobecnění rozdílu rozostření s
+původním obrázkem.
+
+\subsubsection{Laplacian of Sobel}
+Laplaceův operátor je numerickou aproximací druhé derivace. Aplikací na rastr
+získáme velmi tenké hrany, mnohem tenčí, než získané z výše uvedených metod.
+Nevýhodou je, že je velmi citlivý na jakýkoliv šum. Proto některé filtry před
+použitím Laplaceova operátoru odstraní šum, například Gaussovským rozostřením
+(Laplacian of Gaussian) nebo Mediánovým filtrem.
+
+Zde je Laplaceův operátor aplikován po Sobelově operátoru, výsledkem jsou velmi
+tenké hrany s minimálním okolním šumem.
+
+\subsection{Doostření}
+Doostření obrázku je výsledkem součtu původního obrázku s jeho Laplaciánem.
+Standardně je implementována možnost měnit intenzitu doostření pomocí
+koeficientu ostření. \\
+
+$$
+B = A + c \cdot \Delta A
+$$
+$A$ je původní obrázek, $\Delta$ je Laplaceův operátor, $B$ je doostřený
+obrázek a $c$ je koeficient ostření.
+
+\subsection{Gaussovské rozostření}
+% TODO
+
+\end{document}
