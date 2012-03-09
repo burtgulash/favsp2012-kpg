@@ -1,6 +1,7 @@
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Dimension;
+import java.awt.Color;
 
 import javax.swing.JPanel;
 import javax.swing.JFrame;
@@ -73,6 +74,7 @@ public class Main extends JPanel {
         for (int c = 0; c < lvls; c++) {
             triomino(c, size, 1, 0, 0, 1, x, y);
 
+
             x += size;
             y += size;
             size /= 2;
@@ -81,20 +83,21 @@ public class Main extends JPanel {
 
 
     public static void main(String[] argv) {
-		int lvls, width, height;
-		lvls = 4;
-		width = height = 512;
-		try {
-			lvls = Integer.parseInt(argv[0]);
-			width = Integer.parseInt(argv[1]);
-		} catch (NumberFormatException e) {
-			System.err.println("Usage: triomino SUBDIVISIONS SIZE");
-			System.exit(1);
-		}
+        int lvls, width, height;
+        lvls = 4;
+        width = height = 512;
+        try {
+            lvls = Integer.parseInt(argv[0]);
+            width = Integer.parseInt(argv[1]);
+        } catch (NumberFormatException e) {
+            System.err.println("Usage: triomino SUBDIVISIONS SIZE");
+            System.exit(1);
+        }
         height = width;
 
         JFrame frame = new JFrame("Triomino fractal");
         Main m = new Main(width, height, lvls);
+        m.setBackground(Color.WHITE);
 
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         m.setPreferredSize(new Dimension(width, height));
