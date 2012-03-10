@@ -22,7 +22,7 @@ class ColorRange {
     }
 
 
-    java.awt.Color choose(double y, double y1, double y2) {
+    int choose(double y, double y1, double y2) {
         double x = x1 + (x2 - x1) * (y - y1) / (y2 - y1);
 
         for (int i = 1; i < xs.length; i++) {
@@ -45,14 +45,14 @@ class ColorRange {
                 int B = Math.min(B1, B2)                                
                      + (int) (Math.abs(B1 - B2) * (B1 < B2 ? rate : 1 - rate));
 
-                return new Color(R, G, B);
+                return (R << 16) | (G << 8) | B;
             }
         }
 
-        return new Color(colors[colors.length - 1]);
+        return colors[colors.length - 1];
     }
 
-    java.awt.Color choose(double y, double y1, double y2, double eps) {
+    int choose(double y, double y1, double y2, double eps) {
         double c = (xs[1] - x1) / (x2 - x1);
         double first = y1 + (xs[1] - x1) * (y2 - y1) / (x2 - x1);
 
@@ -118,17 +118,36 @@ public class Fractal {
     }
 
 
-    private static void renderImage(Graphics2D g, double[][]buf, double eps) {
-        int w = buf[0].length;
-        int h = buf.length;
+    private static void renderImage(Graphics2D g, double[][]buf, 
+                                    int samples, double eps) {
+		int color, R, G, B, s2;
+		double logColor;
 
-        for (int y = 0; y < h; y++) {
-            for (int x = 0; x < w; x++) {
-                double logColor = Math.log(buf[y][x] + 1.0)
-                                / Math.log(iterations + 1.0);
-                logColor = 1.0 - Math.min(1.0, Math.max(0.0, logColor));
+		s2 = samples * samples;
+        int w = buf[0].length / samples;
+        int h = buf.length / samples;
 
-                g.setPaint(cr.choose(logColor, 0.0, 1.0, eps));
+        for (int y = 0; y < h; y ++) {
+            for (int x = 0; x < w; x ++) {
+				R = G = B = 0;
+				for (int yy = 0; yy < samples; yy++) {
+					for (int xx = 0; xx < samples; xx++) {
+						logColor = Math.log(
+                             buf[samples * y + yy][samples * x + xx] + 1.0)
+                                 / Math.log(iterations + 1.0);
+						logColor = 1.0 - Math.min(Math.max(logColor, 0.0), 1.0);
+						color = cr.choose(logColor, 0.0, 1.0, eps);
+						R += 0xFF & (color >> 16);
+						G += 0xFF & (color >> 8);
+						B += 0xFF & color;
+					}
+				}
+
+				R /= s2;
+				G /= s2;
+				B /= s2;
+
+                g.setPaint(new Color(R, G, B));
                 g.drawLine(x, y, x, y);
             }
         }
@@ -136,23 +155,26 @@ public class Fractal {
 
 
     public static void main (String[] argv) throws IOException {
-        int width = 800;
-        int height = 600;
+        int width = 1280;
+        int height = 720;
+		int samples = 4;
 
         new File("zoom").mkdir();
 
         // double center_x = 0.013438871094;
         // double center_y = 0.655614211997;
-        double center_x = -.167560053621562480;
-        double center_y = 1.041333250530746298;
+        // double center_x = -.167560053621562480;
+        // double center_y = 1.041333250530746298;
+        double center_x = -.167560053622672480;
+        double center_y = 1.041333250530667298;
 
-        double[][] buf = new double[height][width];
+        double[][] buf = new double[samples * height][samples * width];
 
         cr = new ColorRange(new double[] {0, 50, 60, 70, 85, 100},
              new int[]{0, 0xffffff, 0xe3b6ff, 0xaa1188, 0xffca22, 0xffffff});
         cr = new ColorRange(new double[] {0, 40, 45, 50, 60, 65, 100},
              new int[]{0, 0, 0x5f104f, 0xffffff, 0xe819a6, 0x5f104f, 0});
-        cr = new ColorRange(new double[] {0, 20, 45, 50, 55, 65, 100},
+        cr = new ColorRange(new double[] {0, 40, 45, 50, 58, 65, 100},
              new int[]{0, 0, 0x5f104f, 0xffffff, 0xe819a6, 0x5f104f, 0});
 
 
@@ -162,20 +184,20 @@ public class Fractal {
         double angle = 0.0;
 
         // zoom loop
-        for (int z = 0; z < 100; z++) {
+        for (int z = 0; z < 300; z++) {
             xlo = center_x - size_x;
             xhi = center_x + size_x;
             ylo = center_y - size_y;
             yhi = center_y + size_y;
-            size_x *= .9;
-            size_y *= .9;
+            size_x *= .89;
+            size_y *= .89;
 
             mandelbrot(buf, angle, center_x, center_y);
 
             BufferedImage img = new BufferedImage(width, height, 
                                                   BufferedImage.TYPE_INT_RGB);
             Graphics2D g = img.createGraphics();
-            renderImage(g, buf, size_x * 2.0);
+            renderImage(g, buf, samples, size_x * 2.0);
 
             String zoomName = "zoom" + z + ".png";
             ImageIO.write(img, "png", new File("zoom/" + zoomName));
