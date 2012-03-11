@@ -1,0 +1,45 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[czech]{babel}
+
+\title{Krásy počítačové grafiky: Animace fraktálu}
+\author{Tomáš Maršálek}
+\date{10.\,března 2012}
+
+\begin{document}
+\maketitle
+\section{Zadání}
+Vytvořte animací libovolného fraktálu získaného z libovolného, ale vámi
+vytvořeného programu změnami koeficientů, ukládáním jednotlivých dílčích
+obrázků ve formátu .BMP a jejich dodatečným spojením pomocí programu BMP2AVI.
+Odevzdáváte výslednou animaci plus program, ze kterého vznikla, spolu s
+informací o potřebném nastavení parametrů pro zopakování tvorby této animace.
+Bitmapy můžete ukládat ručně pomocí clipboardu nebo prostudovat formát BMP a
+ukládat příslušný formát do souboru přímo z programu, ale spíše bych vám
+doporučila prozkoumat, jestli ve vašem překladači není nějaká hotová
+komponenta, která to umí. Za tuto úlohu získáte 10 bodů.
+
+\section{Provedení}
+Video je animací přiblížení u okraje Mandelbrotovy množiny až na samou hranici
+přesnosti floating point čísel s dvojitou přesností (double). Změna parametrů
+je v tomto případě velikost přiblížení a navíc rotace obrazovky pro estetický
+efekt.
+
+\section{Implementace}
+Aplikace, která generuje animaci je krátký program v Javě s natvrdo
+zakódovanými parametry. Její účel je pouze vygenerovat tohle video. Výstupem je
+300 obrázků v bezztrátovém formátu .png, které jsou pak pomocí kompozičního
+nástroje programu Blender spojeny do videa uloženého v kontejneru .avi.
+
+Program implementuje několik dodatečných úprav pro zvýšení kvality výsledku:
+\begin{itemize}
+\item 16x supersampling
+\item Rekurzivní barevná paleta
+\item Vyhlazování barevných pásů pomocí potenciální funkce
+\end{itemize}
+
+\section{Závěr}
+Program nesplňuje výše uvedené zadání doslova, zmíněný program bmp2avi není vůbec použit. Nicméně stejného výsledku je dosaženo jiným způsobem.
+
+Možná vylepšení by byla zefektivnění výpočtu iterací. Existují divide \& conquer algoritmy, které se snaží odhalit \uv{černá místa}, která jsou výpočetně nejsložitější. Hezkým efektem pro oživení přibližovacích animací tohoto typu je posunování palety barev. Barvy se pak na okrajích fraktálu chovají jako kapalina, která se snaží vyplnit \uv{suchá místa}.
+\end{document}
