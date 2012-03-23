@@ -310,8 +310,11 @@ public class Fractal implements Runnable {
 
         new File("zoom").mkdir();
 
-        double c_x = -.167560053622672480;
-        double c_y = 1.041333250530667298;
+        // double c_x = -.167560053622672480;
+        // double c_y = 1.041333250530667298;
+		double c_x = -.10753571402123041838078;
+		double c_y = .92652909787837417066640;
+		
 
 
         cr = new ColorRange(new double[] {0, 40, 45, 50, 58, 65, 100},

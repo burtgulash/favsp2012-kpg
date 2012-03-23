@@ -26,20 +26,26 @@ je v tomto případě velikost přiblížení a navíc rotace obrazovky pro este
 efekt.
 
 \section{Implementace}
-Aplikace, která generuje animaci je krátký program v Javě s natvrdo
+Aplikace, která generuje animaci, je krátký program v Javě s napevno
 zakódovanými parametry. Její účel je pouze vygenerovat tohle video. Výstupem je
-300 obrázků v bezztrátovém formátu .png, které jsou pak pomocí kompozičního
-nástroje programu Blender spojeny do videa uloženého v kontejneru .avi.
+420 snímků v bezztrátovém formátu png, které jsou pak pomocí kompozičního
+nástroje programu Blender spojeny do videa formátu 720p uloženého v kontejneru
+avi.
 
-Program implementuje několik dodatečných úprav pro zvýšení kvality výsledku:
-\begin{itemize}
-\item 16x supersampling
-\item Rekurzivní barevná paleta
-\item Vyhlazování barevných pásů pomocí potenciální funkce
-\end{itemize}
+Snímky se počítají paralelně ve čtyřech vláknech s 16x supersamlingem. Pomocí
+rekurzivního algoritmu na rozdělení plátna a detekci černých míst jsou
+eliminovány zbytečné výpočty pro místa, kde by docházelo k použití plného počtu
+iterací a zdlouhavému výpočtu, kvůli čemuž vznikají právě ona černá místa. Pro
+zvýšení estetické kvality bylo použito vyhlazování barevných pásů.
+
+Jedním problémem, se kterým se lze při hlubokém zoomování do nitra fraktálů
+setkat, je ztráta barev, a tedy kontrastu, při velkém přiblížení. Jedním
+používaným řešením je zmenšování palety barev stejným tempem, jakým probíhá
+přibližování. Druhým, zde použitým, řešením je rekurzivní rozdělení barevné
+palety. Barvy se v tomto případě nijak nepohybují, zůstávají na místě, ale čas
+od času si v animaci všimneme opakování té samé palety.
 
 \section{Závěr}
-Program nesplňuje výše uvedené zadání doslova, zmíněný program bmp2avi není vůbec použit. Nicméně stejného výsledku je dosaženo jiným způsobem.
-
-Možná vylepšení by byla zefektivnění výpočtu iterací. Existují divide \& conquer algoritmy, které se snaží odhalit \uv{černá místa}, která jsou výpočetně nejsložitější. Hezkým efektem pro oživení přibližovacích animací tohoto typu je posunování palety barev. Barvy se pak na okrajích fraktálu chovají jako kapalina, která se snaží vyplnit \uv{suchá místa}.
+Program nesplňuje výše uvedené zadání doslova, protože zmíněný program bmp2avi
+není vůbec použit. Nicméně stejného výsledku je dosaženo jiným způsobem.
 \end{document}
