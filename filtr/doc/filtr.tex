@@ -20,6 +20,13 @@ a změněný obraz s možností návratu o 1 akci. Odevzdáváte jako obvykle zd
 text, EXE a dokumentaci.
 
 \section{Implementované filtry}
+
+\begin{figure}[ht!]
+\centering
+	\includegraphics[width=8cm]{lena.png}
+	\caption{Originální obrázek}
+\end{figure}
+
 \subsection{Detekce hran}
 Detekce hran je horní propust pro obrazový signál. Vysokou frekvencí v
 rastrovém obrazu se rozumí velký rozdíl v intenzitě barvy v jednotlivých
@@ -53,6 +60,12 @@ D_y =
 \right]
 $$
 
+\begin{figure}[ht!]
+\centering
+	\includegraphics[width=8cm]{sobel.png}
+	\caption{Detekce hran, Sobel}
+\end{figure}
+
 \subsubsection{Rozdíl Gaussovských rozostření}
 Rozostření funguje jako dolní propust pro obrazový signál. Největší změny
 oproti původnímu obrázku nastanou právě v místech, kde se nachází hrany. Ty se
@@ -61,6 +74,13 @@ rozostřenou verzi, největší změnu uvidíme právě v místech hran.
 
 Rozdíl dvou různě silných rozostření je pouze zobecnění rozdílu rozostření s
 původním obrázkem.
+
+\begin{figure}[ht!]
+\centering
+	\includegraphics[width=8cm]{difgaus.png}
+	\caption{Rozdíl Gaussovských rozostření s variancemi 5 a 0.1}
+\end{figure}
+\clearpage
 
 \subsubsection{Laplacian of Sobel}
 Laplaceův operátor je numerickou aproximací druhé derivace. Aplikací na rastr
@@ -71,6 +91,13 @@ použitím Laplaceova operátoru odstraní šum, například Gaussovským rozost
 
 Zde je Laplaceův operátor aplikován po Sobelově operátoru, výsledkem jsou velmi
 tenké hrany s minimálním okolním šumem.
+
+\begin{figure}[ht!]
+\centering
+	\includegraphics[width=8cm]{los.png}
+	\caption{Laplacian of Sobel}
+\end{figure}
+\clearpage
 
 \subsection{Doostření}
 Doostření obrázku je výsledkem součtu původního obrázku s jeho Laplaciánem.
@@ -83,7 +110,87 @@ $$
 $A$ je původní obrázek, $\Delta$ je Laplaceův operátor, $B$ je doostřený
 obrázek a $c$ je koeficient ostření.
 
+\begin{figure}[ht!]
+\centering
+	\includegraphics[width=8cm]{sharpen.png}
+	\caption{Doostření s koeficientem 5}
+\end{figure}
+
+
 \subsection{Gaussovské rozostření}
-% TODO
+Obecně filtr rozostření můžeme chápat jako konvoluci s nějakou průměrující
+funkcí. Například standardní rozostření, tzn. průměr okolních bodů je konvoluce
+obrázku s dvourozměrnou jednotkovou funkcí. Gaussovské rozostření pouze místo
+jednotkové funkce používá Gaussovu křivku jako funkci s koeficienty
+průměrování.  
+
+Konvoluce s větší konvoluční maticí je výpočetně náročná operace,
+pro každý bod musí provést $k^2$ operací, kde $k$ je velikost strany konvoluční
+matice. Při detekci hran tento problém není třeba řešit, protože pracujeme
+pouze s maticemi velikosti 3x3. Při standardním nastavení Gaussovského
+rozostření však už pracujeme s maticí 16x16, při větších rozptylech pak ještě
+mnohem většími, proto je použita známá optimalizace rozdělení konvoluce do
+jednotlivých komponent. Dvourozměrná Gaussova funkce je totiž součin dvou
+jednorozměrných, využití spočívá v provedení dvou jednorozměrných konvolucí po
+sobě, namísto jedné dvourozměrné.
+
+\begin{figure}[ht!]
+\centering
+	\includegraphics[width=8cm]{gaus.png}
+	\caption{Gaussovské rozostření s variancí 3}
+\end{figure}
+\clearpage
+
+\subsection{Inverze barev}
+Je velmi jednoduchý filtr, ale je zahrnut do programu, aby bylo možné pozorovat
+oba způsoby detekce hran: světlé na tmavém pozadí a tmavé na světlém pozadí.
+Filtr pouze odečte barvu od maximální hodnoty pro každý pixel.
+
+\begin{figure}[ht!]
+\centering
+	\includegraphics[width=8cm]{invert.png}
+	\caption{Inverze barev}
+\end{figure}
+\clearpage
+
+\subsection{Odbarvení}
+Tento filtr je také jednoduchý, ale je zajímavý, protože existuje více způsobů,
+jak odbarvení dosáhnout. První je jednoduchý průměr všech tří kanálu. Pro
+lidské oko je však kvalitnější volba luminance, protože průměruje kanály
+podle vnímání lidského oka ($.2125\cdot R + .7152\cdot G + .0722\cdot B$).
+
+\begin{figure}[ht!]
+\centering
+	\includegraphics[width=8cm]{luminance.png}
+	\caption{Odbarvení pomocí luminance}
+\end{figure}
+
+\section{Uživatelské rozhraní}
+Grafické rozhraní je vytvořeno pomocí knihovny GTK+ 3.0, proto by měl vzhled
+vypadat nativně na jednotlivých operačních systémech.
+
+Uživatel může otevřít obrázek ve formátu .bmp, .jpg nebo .png a uložit ho pod
+stejným nebo změněným názvem. Pro možnost porovnání provedených změn je
+implementován systém historie zpět a vpřed. Kromě těchto základních funkcí je
+uživateli umožněno používat výše zmíněné filtry, další funkcionalita není
+implementována.
+
+\section{Implementace}
+Jazyk programu je ANSI C, použitá knihovna grafického prostředí je GTK+ 3.0 a
+Glade 3.
+
+Pro spuštění programu musí být ve stejném adresáři přítomen soubor s
+uživatelským rozhraním upravovac.glade.
+
+\begin{figure}[ht!]
+\centering
+	\includegraphics[width=8cm]{gui.png}
+	\caption{Ukázka uživatelského rozhraní}
+\end{figure}
+
+\section{Závěr}
+Tento program má velký potenciál na další úpravy, především v uživatelském
+rozhraní a dalších filtrech. Nicméně v takovéto podobě by měl splňovat uvedené
+zadání.
 
 \end{document}
