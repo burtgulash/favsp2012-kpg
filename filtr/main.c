@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
     gtk_init(&argc, &argv);
     builder = gtk_builder_new();
 
-    gtk_builder_add_from_file(builder, "upratovac.glade", &err);
+    gtk_builder_add_from_file(builder, "upravovac.glade", &err);
     if (err != NULL) {
         g_printerr("%s: can not load gui.\n", argv[0]);
         return EXIT_FAILURE;

@@ -48,6 +48,28 @@ enum {LUMINANCE, AVERAGE};
 ON_FILTER_CHOOSE(gray_scale)
 ON_FILTER_CHOOSE(edge_detect)
 
+G_MODULE_EXPORT void
+on_filter_invert_choose(GtkWidget *widget, gpointer data)
+{
+    GdkPixbuf *buf, *new;
+    guchar *olds, *news;
+    int x, y, h, s;
+
+    buf = PEEK(undo_stack, up);
+    new = gdk_pixbuf_copy(buf);
+    olds = gdk_pixbuf_get_pixels(buf);
+    news = gdk_pixbuf_get_pixels(new);
+
+    h = p_data.height;
+    s = p_data.rowstride;
+
+    for (y = 0; y < h; y++)
+        for (x = 0; x < s; x ++)
+            news[y * s + x] = 0xFF - olds[y * s + x];
+
+    UPDATE_EDITED_IMAGE(new);
+}
+
 
 G_MODULE_EXPORT void
 on_filter_sharpen_choose(GtkWidget *widget, gpointer data)
