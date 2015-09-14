@@ -21,9 +21,11 @@ Sbírka semestrálních prácí.
 * Implementace (java 6) - [Life.java](life/Life.java)
 
 
-## [3. Animace fraktálu]
+## [3. Animace fraktálu](julia)
 * Implementace (java 6) - [Fractal.java](julia/Fractal.java)
 * Dokumentace - [zoom.pdf](julia/doc/zoom.pdf)
+* Video na YouTube [Mandelbrot set zoom - 720p](https://www.youtube.com/watch?v=MbehWVq2oXY)
+* Mandelbrot
 <p align="center">
   <img src="julia/m1.png" alt="Vyhlazená Mandelbrotova množina" width="75%">
 </p>
