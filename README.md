@@ -23,13 +23,20 @@ Sbírka semestrálních prácí.
 ## [3. Animace fraktálu](julia)
 * Dokumentace - [zoom.pdf](julia/doc/zoom.pdf)
 * Implementace (java 6) - [Fractal.java](julia/Fractal.java)
-* **Video na YouTube** - [Mandelbrot set zoom - 720p](https://www.youtube.com/watch?v=MbehWVq2oXY)
+* **Video na YouTube** - [**Mandelbrot set zoom - 720p**](https://www.youtube.com/watch?v=MbehWVq2oXY)
 * Mandelbrot
 <p align="center">
   <img src="julia/m1.png" alt="Vyhlazená Mandelbrotova množina" width="75%">
 </p>
 
-## [4. Úprava rastrového obrazu](filtr)
+## [4. Triomino](triomino)
+* Dokumentace - [triomino.pdf](triomino/doc/triomino.pdf)
+* Implementace (java 6) - [triomino/Main.java](triomino/Main.java)
+<p align="center">
+  <img src="triomino/doc/triomino_doplneni.png" alt="Pět úrovní triomina" width="45%">
+</p>
+
+## [5. Úprava rastrového obrazu](filtr)
 * Dokumentace
 * Implementace - C, GTK+ 3, Glade
  * [sharpen.c](filtr/sharpen.c)
